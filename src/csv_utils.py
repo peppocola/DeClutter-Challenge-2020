@@ -1,7 +1,7 @@
 import pandas as pd
 import csv
 
-path = 'declutter-gold_DevelopmentSet.csv'
+path = '../csv/declutter-gold_DevelopmentSet.csv'
 
 
 def writeOut(counter):

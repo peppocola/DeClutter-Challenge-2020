@@ -3,8 +3,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
 from sklearn.model_selection import cross_validate
-from tokenizer import spacy_tokenizer
-from csv_utils import commentparser, labelparser
+from src.tokenizer import spacy_tokenizer
+from src.csv_utils import commentparser, labelparser
 
 
 def classify():
