@@ -1,11 +1,14 @@
-import pandas as pd
+from pandas import read_csv
 import csv
+from src.keys import key_classifier, key_metric
 
-path = '../csv/declutter-gold_DevelopmentSet.csv'
+datapath = '../csv/declutter-gold_DevelopmentSet.csv'
+outpath = '../csv/'
 
 
-def writeOut(counter):
-    with open('output.csv', mode='w', newline='') as file:
+def write_counter(counter):
+    nameto = 'count.csv'
+    with open(outpath + nameto, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Type", "Yes", "No", "NI Rate"])
         for key in counter:
@@ -13,9 +16,19 @@ def writeOut(counter):
                              round(counter[key][0] / (counter[key][0] + counter[key][1]), 2)])
 
 
-def csv_parser():
-    lines = pd.read_csv(path,
-                        sep=",", usecols=['type', 'non-information'])
+def write_stats(stats):
+    nameto = 'stats.csv'
+    with open(outpath + nameto, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        keys = [x for x in stats[key_metric]]
+        writer.writerow([x for x in ['classifier'] + keys])
+        for classifier in stats[key_classifier]:
+            writer.writerow([classifier] + stats[classifier])
+
+
+def csv_counter():
+    lines = read_csv(datapath,
+                     sep=",", usecols=['type', 'non-information'])
     counter = {}
     counter['Javadoc'] = [0, 0]
     counter['Line'] = [0, 0]
@@ -30,18 +43,18 @@ def csv_parser():
 
 
 def commentparser():
-    lines = pd.read_csv(path,
-                        sep=",", usecols=['comment'])
+    lines = read_csv(datapath,
+                     sep=",", usecols=['comment'])
     return lines.comment.fillna(' ').tolist()
 
 
 def labelparser():
-    lines = pd.read_csv(path,
-                        sep=",", usecols=['non-information'])
+    lines = read_csv(datapath,
+                     sep=",", usecols=['non-information'])
     return [0 if x == 'no' else 1 for x in lines['non-information'].tolist()]
 
 
 if __name__ == "__main__":
-    writeOut(csv_parser())
+    write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
