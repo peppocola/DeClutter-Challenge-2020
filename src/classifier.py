@@ -46,7 +46,7 @@ def classify():
 
         if key_metric not in stats:
             stats[key_metric] = metric_names
-        stats[i.__name__] = metric_values[:] #[round(x, 2) for x in metric_values]
+        stats[i.__name__] = [round(x, 2) for x in metric_values] #metric_values[:]
         metric_values.clear()
 
     return stats
