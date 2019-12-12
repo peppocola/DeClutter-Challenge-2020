@@ -9,9 +9,9 @@ from src.keys import key_classifier, key_metric
 import time
 
 scores = {'ACCURACY': 'accuracy',
-          'PRECISION': 'precision',
-          'RECALL': 'recall',
-          'F_MEASURE': 'f1'}
+          'PRECISION': 'precision_micro',
+          'RECALL': 'recall_micro',
+          'F_MEASURE': 'f1_micro'}
 
 
 def classify():
@@ -41,8 +41,8 @@ def classify():
         for metric_name in metric_names:
             average_score = average(result[metric_name])
             metric_values.append(average_score)
-            print('%s : %f' % (metric_name, average_score))
-        print()
+            #print('%s : %f' % (metric_name, average_score))
+        #print()
 
         if key_metric not in stats:
             stats[key_metric] = metric_names
@@ -50,6 +50,7 @@ def classify():
         metric_values.clear()
 
     return stats
+
 
 if __name__ == "__main__":
     start_time = time.time()
