@@ -1,4 +1,4 @@
 Type,Yes,No,NI Rate
-Javadoc,305,66,0.82
-Line,424,219,0.66
-Block,14,19,0.42
+Javadoc,66,305,0.18
+Line,219,424,0.34
+Block,19,14,0.58

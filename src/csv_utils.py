@@ -8,6 +8,8 @@ datapath = '../csv/declutter-gold_DevelopmentSet.csv'
 csv_outpath = '../csv/'
 img_outpath = '../img/'
 
+non_information = 1
+information = 0
 
 def write_counter(counter):
     nameto = 'count.csv'
@@ -15,8 +17,8 @@ def write_counter(counter):
         writer = csv.writer(file)
         writer.writerow(["Type", "Yes", "No", "NI Rate"])
         for key in counter:
-            writer.writerow([key, counter[key][0], counter[key][1],
-                             round(counter[key][0] / (counter[key][0] + counter[key][1]), 2)])
+            writer.writerow([key, counter[key][non_information], counter[key][information],
+                             round(counter[key][non_information] / (counter[key][information] + counter[key][non_information]), 2)])
 
 
 def write_stats(stats):
@@ -39,9 +41,9 @@ def csv_counter():
 
     for i in range(lines.__len__()):
         if lines.iloc[i]['non-information'] == 'yes':
-            counter[lines.iloc[i]['type']][1] += 1
+            counter[lines.iloc[i]['type']][non_information] += 1
         else:
-            counter[lines.iloc[i]['type']][0] += 1
+            counter[lines.iloc[i]['type']][information] += 1
     return counter
 
 
@@ -54,7 +56,7 @@ def commentparser():
 def labelparser():
     lines = read_csv(datapath,
                      sep=",", usecols=['non-information'])
-    return [0 if x == 'no' else 1 for x in lines['non-information'].tolist()]
+    return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
 def plot_length():
@@ -64,13 +66,14 @@ def plot_length():
     sample_ni = []
     sample_nni = []
     for x in range(len(comments)):
-        if labels[x] == 0:
+        if labels[x] == non_information:
             sample_ni.append(comments[x])
         else:
             sample_nni.append(comments[x])
 
-    plt.hist(sample_ni, bins='auto', color='blue')
     plt.hist(sample_nni, bins='auto', color='orange')
+    plt.hist(sample_ni, bins='auto', color='blue')
+
     plt.xlabel('comment length')
     plt.ylabel('number of comments')
     plt.legend(['non-information', 'non non-information'])
