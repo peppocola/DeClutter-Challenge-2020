@@ -70,11 +70,11 @@ def plot_length():
             sample_nni.append(comments[x])
 
     plt.hist(sample_ni, bins='auto', color='blue')
-    plt.hist(sample_nni, bins='auto', color='green')
+    plt.hist(sample_nni, bins='auto', color='orange')
     plt.xlabel('comment length')
     plt.ylabel('number of comments')
-    plt.text(1000, 110, 'ni avg = ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
-    plt.text(1000, 100, 'nni avg =' + str(round(sum(sample_nni) / len(sample_nni), 2)))
+    plt.text(1000, 110, 'ni avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
+    plt.text(1000, 100, 'nni avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
     plt.savefig(img_outpath + 'length_distribution.png')
 
 
