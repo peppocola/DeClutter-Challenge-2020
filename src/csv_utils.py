@@ -1,15 +1,6 @@
 from pandas import read_csv
 import csv
-from src.keys import key_classifier, key_metric
-import matplotlib.pyplot as plt
-import numpy as np
-
-datapath = '../csv/declutter-gold_DevelopmentSet.csv'
-csv_outpath = '../csv/'
-img_outpath = '../img/'
-
-non_information = 1
-information = 0
+from src.keys import key_classifier, key_metric, non_information, information, datapath, csv_outpath
 
 def write_counter(counter):
     nameto = 'count.csv'
@@ -34,10 +25,7 @@ def write_stats(stats):
 def csv_counter():
     lines = read_csv(datapath,
                      sep=",", usecols=['type', 'non-information'])
-    counter = {}
-    counter['Javadoc'] = [0, 0]
-    counter['Line'] = [0, 0]
-    counter['Block'] = [0, 0]
+    counter = {'Javadoc': [0, 0], 'Line': [0, 0], 'Block': [0, 0]}
 
     for i in range(lines.__len__()):
         if lines.iloc[i]['non-information'] == 'yes':
@@ -59,31 +47,8 @@ def labelparser():
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
-def plot_length():
-    comments = np.array([len(x) for x in commentparser()])
-    labels = np.array(labelparser())
-
-    sample_ni = []
-    sample_nni = []
-    for x in range(len(comments)):
-        if labels[x] == non_information:
-            sample_ni.append(comments[x])
-        else:
-            sample_nni.append(comments[x])
-
-    plt.hist(sample_nni, bins='auto', color='orange')
-    plt.hist(sample_ni, bins='auto', color='blue')
-
-    plt.xlabel('comment length')
-    plt.ylabel('number of comments')
-    plt.legend(['non-information', 'non non-information'])
-    plt.text(1000, 90, 'ni avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
-    plt.text(1000, 80, 'nni avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
-    plt.savefig(img_outpath + 'length_distribution.png')
-
-
 if __name__ == "__main__":
     write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
-    plot_length()
+
