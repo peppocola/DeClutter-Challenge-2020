@@ -8,17 +8,17 @@ from src.csv_utils import commentparser, labelparser, write_stats
 from src.keys import key_classifier, key_metric
 import time
 
+scores = {'ACCURACY': 'accuracy',
+          'PRECISION': 'precision',
+          'RECALL': 'recall',
+          'F_MEASURE': 'f1'}
+
 
 def classify():
     comments = commentparser()  # the features we want to analyze
     labels = labelparser()  # the labels, or answers, we want to test against
 
     tfidf_vector = TfidfVectorizer(tokenizer=spacy_tokenizer)
-    scores = {'ACCURACY': 'accuracy',
-              'PRECISION': 'precision',
-              'RECALL': 'recall',
-              'F_MEASURE': 'f1'}
-
     stats = {}
     metric_names = []
     metric_values = []
@@ -46,11 +46,10 @@ def classify():
 
         if key_metric not in stats:
             stats[key_metric] = metric_names
-        stats[i.__name__] = [round(x, 2) for x in metric_values] #metric_values[:]
+        stats[i.__name__] = [round(x, 2) for x in metric_values]  # metric_values[:]
         metric_values.clear()
 
     return stats
-
 
 if __name__ == "__main__":
     start_time = time.time()

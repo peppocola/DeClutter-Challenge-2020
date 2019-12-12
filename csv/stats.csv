@@ -1,0 +1,4 @@
+classifier,fit_time,score_time,test_ACCURACY,train_ACCURACY,test_PRECISION,train_PRECISION,test_RECALL,train_RECALL,test_F_MEASURE,train_F_MEASURE
+BernoulliNB,0.14,0.08,0.76,0.87,0.62,0.8,0.43,0.72,0.49,0.76
+ComplementNB,0.11,0.07,0.74,0.87,0.55,0.84,0.34,0.67,0.4,0.75
+MultinomialNB,0.11,0.07,0.76,0.81,0.69,0.96,0.22,0.34,0.26,0.51
