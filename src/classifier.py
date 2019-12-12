@@ -5,7 +5,9 @@ from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
 from sklearn.model_selection import cross_validate
 from src.tokenizer import spacy_tokenizer
 from src.csv_utils import commentparser, labelparser, write_stats
-from src.keys import key_classifier, key_metric
+from src.keys import key_classifier, key_metric, non_information, information
+from src.plot_utils import saveHeatmap
+
 import time
 
 scores = {'ACCURACY': 'accuracy',
@@ -16,6 +18,8 @@ scores = {'ACCURACY': 'accuracy',
           'F_MEASURE_MACRO': 'f1_macro',
           'F_MEASURE_MICRO': 'f1_micro'
           }
+
+metrics = []
 
 
 def classify():
@@ -35,9 +39,18 @@ def classify():
         pipe = Pipeline([('vectorizer', tfidf_vector),
                          ('classifier', classifier)])
 
-        result = cross_validate(pipe, comments, labels, cv=7, scoring=scores, return_train_score=True)
+        result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10))
+
+        cm = confusion_matrix(result, labels, [information, non_information])
+        saveHeatmap(cm, i.__name__)
 
         print(i.__name__)
+        print(recall_score.__name__, recall_score(result, labels))
+        print(precision_score.__name__, precision_score(result, labels))
+        print(f1_score.__name__, f1_score(result, labels))
+
+        result = cross_validate(pipe, comments, labels, cv=KFold(n_splits=7), scoring=scores, return_train_score=True)
+
 
         if len(metric_names) == 0:
             metric_names = [x for x in result]
