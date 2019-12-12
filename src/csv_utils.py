@@ -1,6 +1,8 @@
 from pandas import read_csv
 import csv
 from src.keys import key_classifier, key_metric
+import matplotlib.pyplot as plt
+import numpy as np
 
 datapath = '../csv/declutter-gold_DevelopmentSet.csv'
 outpath = '../csv/'
@@ -36,9 +38,9 @@ def csv_counter():
 
     for i in range(lines.__len__()):
         if lines.iloc[i]['non-information'] == 'yes':
-            counter[lines.iloc[i]['type']][0] += 1
-        else:
             counter[lines.iloc[i]['type']][1] += 1
+        else:
+            counter[lines.iloc[i]['type']][0] += 1
     return counter
 
 
@@ -53,8 +55,32 @@ def labelparser():
                      sep=",", usecols=['non-information'])
     return [0 if x == 'no' else 1 for x in lines['non-information'].tolist()]
 
+def length():
+    comments = np.array([len(x) for x in commentparser()])
+    labels = np.array(labelparser())
+
+    sample_ni = []
+    sample_nni = []
+    for x in range(len(comments)):
+        if labels[x] == 0:
+            sample_ni.append(comments[x])
+        else:
+            sample_nni.append(comments[x])
+
+    print('avg ni')
+    print(sum(sample_ni) / len(sample_ni))
+    print('avg nni')
+    print(sum(sample_nni) / len(sample_nni))
+
+    plt.hist(sample_ni, bins='auto', color='blue')
+    plt.hist(sample_nni, bins='auto', color='green')
+    plt.xlabel('comment length')
+    plt.ylabel('number of comments')
+    plt.show()
+
 
 if __name__ == "__main__":
     write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
+    length()
