@@ -2,6 +2,7 @@ from pandas import read_csv
 import csv
 from src.keys import key_classifier, key_metric, non_information, information, datapath, csv_outpath
 
+
 def write_counter(counter):
     nameto = 'count.csv'
     with open(csv_outpath + nameto, mode='w', newline='') as file:
@@ -9,7 +10,8 @@ def write_counter(counter):
         writer.writerow(["Type", "Yes", "No", "NI Rate"])
         for key in counter:
             writer.writerow([key, counter[key][non_information], counter[key][information],
-                             round(counter[key][non_information] / (counter[key][information] + counter[key][non_information]), 2)])
+                             round(counter[key][non_information] / (
+                                         counter[key][information] + counter[key][non_information]), 2)])
 
 
 def write_stats(stats):
@@ -51,4 +53,3 @@ if __name__ == "__main__":
     write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
-

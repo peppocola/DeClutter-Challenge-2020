@@ -11,7 +11,7 @@ from src.plot_utils import saveHeatmap
 
 import time
 
-# TODO : add precision-recall curve FOR FUN
+# TODO : add precision-recall curve and ROC ---> FOR FUN
 metrics = [accuracy_score, average_precision_score, recall_score, precision_score, f1_score]
 metric_names = [x.__name__ for x in metrics]
 
@@ -34,7 +34,7 @@ def classify():
 
         result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10))
 
-        cm = confusion_matrix(result, labels, [information, non_information])
+        cm = confusion_matrix(result, labels, [non_information, information])
         saveHeatmap(cm, i.__name__)
 
         print(i.__name__)

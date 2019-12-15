@@ -4,7 +4,8 @@ import seaborn as sns
 from src.keys import non_information, img_outpath
 from src.csv_utils import commentparser, labelparser
 
-#takes a confusion matrix and plots it
+
+# takes a confusion matrix and plots it
 def saveHeatmap(cm, name):
     sns.heatmap(cm, square=False, annot=True, cbar=True, fmt="d", xticklabels=["information", "non_information"],
                 yticklabels=["information", "non_information"])
@@ -35,6 +36,7 @@ def plot_length():
     plt.text(1000, 90, 'ni avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
     plt.text(1000, 80, 'nni avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
     plt.savefig(img_outpath + 'length_distribution.png')
+    plt.clf()
 
 
 if __name__ == "__main__":
