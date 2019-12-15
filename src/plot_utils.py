@@ -9,8 +9,8 @@ from src.csv_utils import commentparser, labelparser
 def saveHeatmap(cm, name):
     sns.heatmap(cm, square=False, annot=True, cbar=True, fmt="d", xticklabels=["information", "non_information"],
                 yticklabels=["information", "non_information"])
-    plt.text(-0.25, 1.15, 'actual', rotation=90)
-    plt.text(0.8, 2.2, 'predicted')
+    plt.text(-0.25, 1.15, 'predicted', rotation=90)
+    plt.text(0.8, 2.2, 'actual')
     plt.savefig(img_outpath + 'heatmap_' + name)
     plt.clf()
 

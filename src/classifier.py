@@ -34,7 +34,7 @@ def classify():
 
         result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10))
 
-        cm = confusion_matrix(result, labels, [non_information, information])
+        cm = confusion_matrix(result, labels, [information, non_information])
         saveHeatmap(cm, i.__name__)
 
         print(i.__name__)
