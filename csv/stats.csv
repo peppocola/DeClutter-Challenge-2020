@@ -1,4 +1,4 @@
 classifier,accuracy_score,average_precision_score,recall_score,precision_score,f1_score
-BernoulliNB,0.7,0.21,0.48,0.26,0.34
-ComplementNB,0.7,0.13,0.45,0.16,0.24
-MultinomialNB,0.71,0.03,0.52,0.04,0.07
+BernoulliNB,0.7,0.13,0.45,0.16,0.24
+ComplementNB,0.74,0.28,0.59,0.36,0.44
+MultinomialNB,0.71,0.03,0.46,0.04,0.07

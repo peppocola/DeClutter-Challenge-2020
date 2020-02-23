@@ -32,9 +32,9 @@ def plot_length():
 
     plt.xlabel('comment length')
     plt.ylabel('number of comments')
-    plt.legend(['non-information', 'non non-information'])
-    plt.text(1000, 90, 'ni avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
-    plt.text(1000, 80, 'nni avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
+    plt.legend(['non non-information', 'non-information'])
+    plt.text(1000, 80, 'ni avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
+    plt.text(1000, 90, 'nni avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
     plt.savefig(img_outpath + 'length_distribution.png')
     plt.clf()
 
