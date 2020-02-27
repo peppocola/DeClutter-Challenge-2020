@@ -32,7 +32,7 @@ def classify():
         pipe = Pipeline([('vectorizer', tfidf_vector),
                          ('classifier', classifier)])
 
-        result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10))
+        result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10, shuffle=True))
 
         cm = confusion_matrix(result, labels, [information, non_information])
         saveHeatmap(cm, i.__name__)
@@ -40,7 +40,7 @@ def classify():
         print(i.__name__)
         stats[i.__name__] = []
         for metric in metrics:
-            stats[i.__name__].append(round(metric(result, labels),2))
+            stats[i.__name__].append(str(round(metric(result, labels), 2)))
 
     return stats
 
