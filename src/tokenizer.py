@@ -15,9 +15,9 @@ def spacy_tokenizer(sentence):
     # Creating our token object, which is used to create documents with linguistic annotations.
     mytokens = parser(sentence)
 
-    # Lemmatizing each token and converting each token into lowercase
-    mytokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens]
-
+    # LEMMATIZATION REMOVED
+    # mytokens = [word.lemma_.lower().strip() if word.lemma_ != "-PRON-" else word.lower_ for word in mytokens]
+    mytokens = [word.lower_ for word in mytokens]
     # Removing stop words
     mytokens = [word for word in mytokens if word not in stop_words and word not in punctuations]
 
