@@ -16,16 +16,14 @@ metrics = [accuracy_score, average_precision_score, recall_score, precision_scor
 metric_names = [x.__name__ for x in metrics]
 
 
-def classify():
+def classify(classifiers=None):
+    if classifiers is None:
+        classifiers = [BernoulliNB, ComplementNB, MultinomialNB]
     comments = commentparser()  # the features we want to analyze
     labels = labelparser()  # the labels, or answers, we want to test against
 
     tfidf_vector = TfidfVectorizer(tokenizer=spacy_tokenizer)
-    stats = {}
-
-    classifiers = [BernoulliNB, ComplementNB, MultinomialNB]
-    stats[key_classifier] = [i.__name__ for i in classifiers]
-    stats[key_metric] = metric_names[:]
+    stats = {key_classifier: [i.__name__ for i in classifiers], key_metric: metric_names[:]}
 
     for i in classifiers:
         classifier = i()
