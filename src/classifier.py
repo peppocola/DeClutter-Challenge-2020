@@ -3,6 +3,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
     accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
+from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import cross_val_predict, KFold
 from src.tokenizer import spacy_tokenizer
 from src.csv_utils import commentparser, labelparser, write_stats
@@ -18,7 +19,7 @@ metric_names = [x.__name__ for x in metrics]
 
 def classify(classifiers=None):
     if classifiers is None:
-        classifiers = [BernoulliNB, ComplementNB, MultinomialNB]
+        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC]
     comments = commentparser()  # the features we want to analyze
     labels = labelparser()  # the labels, or answers, we want to test against
 
