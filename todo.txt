@@ -3,11 +3,11 @@ aggiungere lunghezza come feature
 token java nei commenti (proporzione tra token e parole)
 tag nei commenti javadoc
 dove si trovano i commenti (posizione)
-individuare feature extra-testuali 
-precisione e richiamo per classe
+individuare feature extra-testuali
 
 
 DONE:
 svm lineare/kernel rbf (LinearSVC / SVC (default kernel RBF))
 yes/no labels
 lemma or not lemma dilemma (non cambia granchè)
+precisione e richiamo per classe
