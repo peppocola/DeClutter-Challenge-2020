@@ -1,0 +1,7 @@
+string c = "nvcnjavcj" "//commente"
+//comment
+// /*
+string c = "nvcnjavcj" //commente
+string c = "nvcnjavcj"//commente
+/* //
+*/
