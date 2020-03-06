@@ -1,5 +1,5 @@
 import ply.lex as lex
-
+from src.keys import java_keywords
 import re
 
 CONST_SPECIAL_CHARACTERS = u'\xf1\xe1\xe9\xed\xf3\xfa\xc1\xc9\xcd\xd3\xda\xd1'
@@ -32,7 +32,6 @@ tokens = ['AND',
           'MULTIPLICATION',
           'NUMBER',
           'CIENTIFIC',
-          'FLOAT',
           'OR',
           'RIGHTPARENT',
           'LEFTPARENT',
@@ -41,31 +40,18 @@ tokens = ['AND',
           'SEMICOLON',
           'ADDITION',
           'CONDITIONALIF',
-          'CONDITIONALELSE'
+          'CONDITIONALELSE',
+          'STR'
           ]
 
 ## Store reserved words in dictionary ##
 
-reserved = {
-    'boolean': 'BOOLEAN',
-    'break': 'BREAK',
-    'class': 'CLASS',
-    'continue': 'CONTINUE',
-    'else': 'ELSE',
-    'extends': 'EXTENDS',
-    'false': 'FALSE',
-    'if': 'IF',
-    'int': 'INT',
-    'length': 'LENGTH',
-    'new': 'NEW',
-    'null': 'NULL',
-    'return': 'RETURN',
-    'string': 'STRING',
-    'this': 'THIS',
-    'true': 'TRUE',
-    'void': 'VOID',
-    'while': 'WHILE'
-}
+reserved = {}
+
+with open(java_keywords, 'r') as f:
+    lines = f.read().splitlines()
+    for line in lines:
+        reserved[line] = line.upper()
 
 ## Merge tokens and reserved words ##
 
@@ -101,7 +87,6 @@ t_SEMICOLON = r';'
 t_ADDITION = '\+'
 t_CONDITIONALIF = r'\?'
 t_CONDITIONALELSE = r':'
-t_CLASS = r'class'
 
 
 ## Token Implementation by function ##
@@ -157,17 +142,18 @@ def t_IDEN(t):
     return t
 
 
-def t_STRING(t):
-    #r'\"(([ -~]|(\\\"))+)\"'
+def t_STR(t):
+    # r'\"(([ -~]|(\\\"))+)\"'
     r'\"([^\"\\]|\\\")*\"'
     return t
 
 
 def t_ignore_LINECOMMENT(t):
-    #r'(?:[^"]|"(?:[^\"]|\\.)*")*?(//.*?[\r\n])'
+    # r'(?:[^"]|"(?:[^\"]|\\.)*")*?(//.*?[\r\n])'
     r'//.*\n'
 
-def t_ignore_MULTILINECOMMENT(t):  #WORKS https://regex101.com/r/50xaQs/24
+
+def t_ignore_MULTILINECOMMENT(t):  # WORKS https://regex101.com/r/50xaQs/24
     r'\/\*((?!\*\/)[^\r\n])*[\r\n]((?!\*\/)[\s\S\r\n])*\*\/'
 
 
@@ -185,7 +171,6 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-
 ## Helper Functions ##
 
 def accentReplace(word):
@@ -199,15 +184,20 @@ def accentReplace(word):
     return identifier
 
 
-## Build Lexer ##
+def get_tokens(path):
+    source = open(path, 'r')
 
-source = open('../testers/test.txt', 'r')
+    linez = source.read()
 
-lines = source.read()
+    lexer = lex.lex()
 
-lexer = lex.lex()
+    lexer.input(linez)
 
-lexer.input(lines)
+    tokenz = []
+    for tok in lexer:
+        tokenz.append(tok.value)
+    return tokenz
 
-for tok in lexer:
-    tokens = (tok.type, tok.value)
+
+if __name__ == "__main__":
+    print(get_tokens('../testers/minitest.txt'))
