@@ -1,0 +1,2 @@
+precision_no,recall_no,f1-score_no,support_no,precision_yes,recall_yes,f1-score_yes,support_yes,accuracy,precision_macro avg,recall_macro avg,f1-score_macro avg,support_macro avg,precision_weighted avg,recall_weighted avg,f1-score_weighted avg,support_weighted avg
+0.7858823529411765,0.8990578734858681,0.8386691776522285,743,0.6192893401015228,0.40131578947368424,0.48702594810379246,304,0.7545367717287488,0.7025858465213497,0.6501868314797762,0.6628475628780105,1047,0.7375115068062627,0.7545367717287488,0.7365683736572671,1047
