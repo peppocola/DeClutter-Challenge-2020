@@ -34,7 +34,8 @@ def write_stats(stats):
             writer.writerow(row)
 
     f = read_csv(name_full)
-    keep_col = ['classifier', 'precision_no', 'recall_no', 'f1-score_no', 'precision_yes', 'recall_yes', 'f1-score_yes', # keep some cols
+    keep_col = ['classifier', 'precision_no', 'recall_no', 'f1-score_no', 'precision_yes', 'recall_yes', 'f1-score_yes',
+                # keep some cols
                 'accuracy', 'precision_macro avg', 'recall_macro avg', 'f1-score_macro avg']
     new_f = f[keep_col]
     new_f.to_csv(name_short, index=False)
@@ -48,10 +49,10 @@ def write_classifier_stats(stats, key):
         if type(stats[k]) is dict:
             for h in stats[k]:
                 desc_row.append(h + '_' + k)
-                value_row.append(stats[k][h])
+                value_row.append(round(stats[k][h], 2))
         else:
             desc_row.append(k)
-            value_row.append(stats[k])
+            value_row.append(round(stats[k], 2))
 
     with open(path, mode='w', newline='') as file:
         writer = csv.writer(file)
@@ -87,7 +88,14 @@ def labelparser():
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
+def linkparser():
+    lines = read_csv(datapath,
+                     sep=",", usecols=['path_to_file'])
+    return lines['path_to_file'].tolist()
+
+
 if __name__ == "__main__":
     write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
+    print(linkparser())
