@@ -7,13 +7,11 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import cross_val_predict, KFold
 from src.tokenizer import spacy_tokenizer
 from src.csv_utils import commentparser, labelparser, write_stats
-from src.keys import key_classifier, key_metric, non_information, information
+from src.keys import non_information, information
 from src.plot_utils import saveHeatmap
 
 import time
 
-# TODO : add precision-recall curve and ROC ---> FOR FUN
-# TODO : create object stats
 metrics = [accuracy_score, average_precision_score, recall_score, precision_score, f1_score]
 metric_names = [x.__name__ for x in metrics]
 

@@ -1,8 +1,7 @@
-from pandas import read_csv, concat
+from pandas import read_csv
 import csv
-from src.keys import key_classifier, key_metric, non_information, information, datapath, csv_outpath, stats_outpath, \
+from src.keys import non_information, information, datapath, csv_outpath, stats_outpath, \
     csv_ex
-import os
 
 
 def write_counter(counter):
