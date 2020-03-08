@@ -1,0 +1,24 @@
+@param:
+	no -> 6
+	yes-> 5
+@return:
+	no -> 7
+	yes-> 4
+@see:
+	no -> 2
+	yes-> 0
+{@link.*}:
+	no -> 74
+	yes-> 3
+@Override:
+	no -> 1
+	yes-> 0
+@implNote:
+	no -> 1
+	yes-> 1
+{@code.*}:
+	no -> 7
+	yes-> 0
+{@inheritDoc.*}:
+	no -> 0
+	yes-> 1
