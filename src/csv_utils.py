@@ -1,12 +1,12 @@
 from pandas import read_csv
 import csv
-from src.keys import non_information, information, datapath, csv_outpath, stats_outpath, \
+from src.keys import non_information, information, datapath, reports_outpath, scores_outpath, \
     csv_ex, java_tags
 
 
 def write_counter(counter):
-    nameto = 'count.csv'
-    with open(csv_outpath + nameto, mode='w', newline='') as file:
+    nameto = 'count'+ csv_ex
+    with open(reports_outpath + nameto, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Type", "Yes", "No", "NI Rate"])
         for key in counter:
@@ -16,18 +16,18 @@ def write_counter(counter):
 
 
 def write_stats(stats):
-    name_full = stats_outpath + "full_stats" + csv_ex
-    name_short = stats_outpath + "short_stats" + csv_ex
+    name_full = scores_outpath + "full_stats" + csv_ex
+    name_short = scores_outpath + "short_stats" + csv_ex
 
     rows = []
     header = []
     for key in stats:
-        desc_row, values = write_classifier_stats(stats[key], key)  # write single stats
+        desc_row, values = write_classifier_stats(stats[key], key)  # write single scores
         header = desc_row
         rows.append(values)
     header.insert(0, "classifier")
 
-    with open(name_full, mode='w', newline='') as file:  # write full stats (cat the single)
+    with open(name_full, mode='w', newline='') as file:  # write full scores (cat the single)
         writer = csv.writer(file)
         writer.writerow(header)
         for row in rows:
@@ -42,7 +42,7 @@ def write_stats(stats):
 
 
 def write_classifier_stats(stats, key):
-    path = stats_outpath + key + csv_ex
+    path = scores_outpath + key + csv_ex
     desc_row = []
     value_row = []
     for k in stats:

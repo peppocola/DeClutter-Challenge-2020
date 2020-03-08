@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from src.keys import non_information, img_outpath
-from src.csv_utils import commentparser, labelparser
+from src.keys import non_information, information, img_outpath, reports_outpath
+from src.csv_utils import commentparser, labelparser, tagsparser
+import re
 
 
 # takes a confusion matrix and plots it
@@ -39,5 +40,73 @@ def plot_length():
     plt.clf()
 
 
+def has_tags_analysis():
+    has_tags = 1
+    no_tags = 0
+    tags = tagsparser()
+    comments = commentparser()
+    labels = np.array(labelparser())
+
+    tag_comment = []
+    for comment in comments:
+        match = False
+        for tag in tags:
+            if re.search(tag, comment):
+                match = True
+                tag_comment.append(has_tags)
+                break
+        if match is False:
+            tag_comment.append(no_tags)
+
+    tags_positive = 0
+    tags_negative = 0
+    no_tags_positive = 0
+    no_tags_negative = 0
+
+    for i in range(len(labels)):
+        if labels[i] == non_information and tag_comment[i] == has_tags:
+            tags_positive += 1
+        elif labels[i] == information and tag_comment[i] == has_tags:
+            tags_negative += 1
+        elif labels[i] == non_information and tag_comment[i] == no_tags:
+            no_tags_positive += 1
+        elif labels[i] == information and tag_comment[i] == no_tags:
+            no_tags_negative += 1
+        i += 1
+    with open(reports_outpath + "has_tags" + ".txt", 'w') as f:
+        f.write("yes w tags = " + str(tags_positive) + "/" + str(tags_positive+no_tags_positive) + "\n")
+        f.write("yes wout tags = " + str(no_tags_positive) + "/" + str(tags_positive+no_tags_positive) + "\n")
+        f.write("no w tags = " + str(tags_negative) + "/" + str(tags_negative+no_tags_negative) + "\n")
+        f.write("no wout tags = " + str(no_tags_negative) + "/" + str(tags_negative+no_tags_negative) + "\n")
+    assert tags_positive + tags_negative + no_tags_positive + no_tags_negative == len(labels)
+
+
+def tags_analysis():
+    labels = np.array(labelparser())
+    comments = commentparser()
+    tags = tagsparser()
+
+    tags_dict = {}
+    for tag in tags:
+        tags_dict[tag] = [0, 0]
+        i = 0
+        for comment in comments:
+            if re.search(tag, comment):
+                if labels[i] == non_information:
+                    tags_dict[tag][non_information] += 1
+                else:
+                    tags_dict[tag][information] += 1
+            i += 1
+    with open(reports_outpath + "tags_analysis" + ".txt", 'w') as f:
+        for key in tags_dict:
+            if tags_dict[key] != [0, 0]:
+                f.write(key + ":" + "\n")
+                f.write("\tno -> " + str(tags_dict[key][information]) + "\n")
+                f.write("\tyes-> " + str(tags_dict[key][non_information]) + "\n")
+
+
 if __name__ == "__main__":
-    plot_length()
+    # plot_length()
+    has_tags_analysis()
+    print()
+    tags_analysis()

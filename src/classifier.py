@@ -4,6 +4,7 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
 from sklearn.svm import LinearSVC, SVC
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_predict, KFold
 from src.tokenizer import spacy_tokenizer
 from src.csv_utils import commentparser, labelparser, write_stats
@@ -18,14 +19,17 @@ metric_names = [x.__name__ for x in metrics]
 
 def classify(classifiers=None):
     if classifiers is None:
-        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC]
+        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC]#, MLPClassifier]
     comments = commentparser()  # the features we want to analyze
     labels = labelparser()  # the labels, or answers, we want to testers against
 
     tfidf_vector = TfidfVectorizer(tokenizer=spacy_tokenizer)
     stats = {}
     for i in classifiers:
-        classifier = i()
+        if i is MLPClassifier:
+            classifier = i(alpha=100, max_iter=400) # let this bullshit worrk
+        else:
+            classifier = i()
         pipe = Pipeline([('vectorizer', tfidf_vector),
                          ('classifier', classifier)])
 
@@ -38,7 +42,6 @@ def classify(classifiers=None):
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
         print(report)
         stats[i.__name__] = report
-    print(stats)
     return stats
 
 
