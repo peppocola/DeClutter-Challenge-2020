@@ -1,0 +1,12 @@
+@category
+@example
+@tutorial
+@index
+@exclude
+@todo
+@internal
+@obsolete
+@threadsafety
+@threadsafety
+@event
+@source
