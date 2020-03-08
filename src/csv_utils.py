@@ -1,7 +1,7 @@
 from pandas import read_csv
 import csv
 from src.keys import non_information, information, datapath, csv_outpath, stats_outpath, \
-    csv_ex
+    csv_ex, java_tags
 
 
 def write_counter(counter):
@@ -93,6 +93,10 @@ def linkparser():
                      sep=",", usecols=['path_to_file'])
     return lines['path_to_file'].tolist()
 
+
+def tagsparser():
+    with open(java_tags, 'r') as f:
+        return [line for line in f.read().splitlines()]
 
 if __name__ == "__main__":
     write_counter(csv_counter())
