@@ -1,2 +1,2 @@
-precision_no,recall_no,f1-score_no,support_no,precision_yes,recall_yes,f1-score_yes,support_yes,accuracy,precision_macro avg,recall_macro avg,f1-score_macro avg,support_macro avg,precision_weighted avg,recall_weighted avg,f1-score_weighted avg,support_weighted avg
-0.79,0.9,0.84,743,0.62,0.4,0.49,304,0.76,0.7,0.65,0.66,1047,0.74,0.76,0.74,1047
+precision_yes,recall_yes,f1-score_yes,support_yes,precision_no,recall_no,f1-score_no,support_no,accuracy,precision_macro avg,recall_macro avg,f1-score_macro avg,support_macro avg,precision_weighted avg,recall_weighted avg,f1-score_weighted avg,support_weighted avg
+0.78,0.9,0.84,743,0.62,0.38,0.47,304,0.75,0.7,0.64,0.65,1047,0.73,0.75,0.73,1047
