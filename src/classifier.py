@@ -39,7 +39,7 @@ def classify(classifiers=None):
         saveHeatmap(cm, i.__name__)
 
         print(i.__name__)
-        report = classification_report(labels, result, digits=3, target_names=['yes', 'no'], output_dict=True)
+        report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
         print(report)
         stats[i.__name__] = report
     return stats
