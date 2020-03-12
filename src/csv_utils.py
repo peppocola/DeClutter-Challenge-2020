@@ -5,7 +5,7 @@ from src.keys import non_information, information, datapath, reports_outpath, sc
 
 
 def write_counter(counter):
-    nameto = 'count'+ csv_ex
+    nameto = 'count' + csv_ex
     with open(reports_outpath + nameto, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Type", "Yes", "No", "NI Rate"])
@@ -98,8 +98,16 @@ def tagsparser():
     with open(java_tags, 'r') as f:
         return [line for line in f.read().splitlines()]
 
+
+def link_line_type_extractor():
+    lines = read_csv(datapath,
+                     sep=",", usecols=['type', 'path_to_file', 'begin_line'])
+    return lines.values.tolist()
+
+
 if __name__ == "__main__":
     write_counter(csv_counter())
     print(labelparser())
     print(commentparser())
     print(linkparser())
+    print(link_line_type_extractor())
