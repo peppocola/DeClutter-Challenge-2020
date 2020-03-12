@@ -19,17 +19,14 @@ metric_names = [x.__name__ for x in metrics]
 
 def classify(classifiers=None):
     if classifiers is None:
-        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC]#, MLPClassifier]
+        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier]
     comments = commentparser()  # the features we want to analyze
     labels = labelparser()  # the labels, or answers, we want to testers against
 
     tfidf_vector = TfidfVectorizer(tokenizer=spacy_tokenizer)
     stats = {}
     for i in classifiers:
-        if i is MLPClassifier:
-            classifier = i(alpha=100, max_iter=400) # let this bullshit worrk
-        else:
-            classifier = i()
+        classifier = i()
         pipe = Pipeline([('vectorizer', tfidf_vector),
                          ('classifier', classifier)])
 

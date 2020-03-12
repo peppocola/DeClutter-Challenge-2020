@@ -1,9 +1,12 @@
-multilayer perception
 aggiungere lunghezza come feature
 token java nei commenti (proporzione tra token e parole)
 tag nei commenti javadoc
 dove si trovano i commenti (posizione)
 individuare feature extra-testuali
+random forest
+jaccard
+classificatore con queste feature (tag etc)
+parser -> classi sintattiche
 
 
 DONE:
@@ -11,3 +14,4 @@ svm lineare/kernel rbf (LinearSVC / SVC (default kernel RBF))
 yes/no labels
 lemma or not lemma dilemma (non cambia granchè)
 precisione e richiamo per classe
+multilayer perception
