@@ -1,10 +1,9 @@
 aggiungere lunghezza come feature
-token java nei commenti (proporzione tra token e parole)
+token java nei commenti (proporzione tra token e parole) (jaccard)
 tag nei commenti javadoc
 dove si trovano i commenti (posizione)
 individuare feature extra-testuali
 random forest
-jaccard
 classificatore con queste feature (tag etc)
 parser -> classi sintattiche
 
