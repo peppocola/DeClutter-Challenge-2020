@@ -7,7 +7,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import cross_val_predict, KFold
 from src.tokenizer import spacy_tokenizer
-from src.csv_utils import commentparser, labelparser, write_stats
+from src.csv_utils import comment_parser, label_parser, write_stats
 from src.keys import non_information, information
 from src.plot_utils import saveHeatmap
 
@@ -20,8 +20,8 @@ metric_names = [x.__name__ for x in metrics]
 def classify(classifiers=None):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier]
-    comments = commentparser()  # the features we want to analyze
-    labels = labelparser()  # the labels, or answers, we want to testers against
+    comments = comment_parser()  # the features we want to analyze
+    labels = label_parser()  # the labels, or answers, we want to testers against
 
     tfidf_vector = TfidfVectorizer(tokenizer=spacy_tokenizer)
     stats = {}

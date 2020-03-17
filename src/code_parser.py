@@ -2,26 +2,10 @@ import antlr4
 import javalang
 from java.antlr_unit import Java8Parser, Java8Lexer
 from src.url_utils import get_text_by_url
-from src.csv_utils import link_line_type_extractor
+from src.csv_utils import link_line_type_extractor, keyword_parser
 import re
-import inspect
-import random
-from src.keys import line, javadoc
-
-
-def code_parser3():
-    code = " public static void showContextMenu(TextArea textArea, ContextMenu contextMenu, ContextMenuEvent e) {"
-    tokens = javalang.tokenizer.tokenize(code)
-    parser = javalang.parser.Parser(tokens)
-    members = inspect.getmembers(parser, predicate=inspect.ismethod)
-    for i in members:
-        try:
-            parser.i[0]()
-            ast = parser.parse_member_declaration()
-            if type(ast) is javalang.tree.MethodInvocation:
-                print(ast)
-        except javalang.parser.JavaSyntaxError as err:
-            print("wrong syntax", err)
+from src.keys import line
+from nltk.stem.porter import *
 
 
 def code_parser2():
@@ -146,7 +130,7 @@ def get_positions():
     comment_line = 2
 
     data = link_line_type_extractor()
-    random.shuffle(data)
+    #random.shuffle(data)
     file = []
     for row in data:
         print(row[comment_line], row[comment_type], row[text_link]+"#L"+str(row[comment_line]))
@@ -158,15 +142,55 @@ def get_positions():
         # print(line_type_identifier(focus_line))
 
 
+def get_lines():
+    comment_type = 0
+    text_link = 1
+    comment_line = 2
+
+    data = link_line_type_extractor()
+    lines = []
+    for row in data:
+        code = get_text_by_url(row[text_link])
+        focus_line = get_line(code, row[comment_line], row[comment_type])
+        lines.append(focus_line)
+    return lines
+
+
+def get_code_words():
+    lines = get_lines()
+    words = []
+    for line in lines:
+        words.append(word_extractor(line))
+    return words
+
+
 def word_extractor(string):
-    string = remove_line_comment(remove_block_comment(string))
-    splitted = first_split(string)
+    string = remove_line_comment(string)
+    string = remove_block_comment(string)
+    splitted = code_split(string)
     words = []
     for part in splitted:
         camel_case_parts = camel_case_split(part)
         for camel in camel_case_parts:
             words.append(camel.lower())
-    return words  # TODO:lemma and find synset for jaccard
+    return stem(remove_keywords(words))
+
+
+def remove_keywords(words):
+    keywords = keyword_parser()
+    non_keywords = []
+    for word in words:
+        if word not in keywords:
+            non_keywords.append(word)
+    return non_keywords
+
+
+def stem(words):
+    stemmer = PorterStemmer()
+    stemmed = []
+    for token in words:
+        stemmed.append(stemmer.stem(token))
+    return stemmed
 
 
 def camel_case_split(string):
@@ -202,7 +226,7 @@ def remove_line_comment(string):
             if comment is False:
                 comment = True
             else:
-                break
+                return string[:i]
         elif comment is True:
             i += 1
             comment = False
@@ -210,10 +234,10 @@ def remove_line_comment(string):
             escape = False
         if comment is False:
             i += 1
-    return string[:i]
+    return string
 
 
-def remove_block_comment(string): #somehow not working properly
+def remove_block_comment(string):
     in_string = False
     escape = False
     block = False
@@ -257,8 +281,8 @@ def remove_block_comment(string): #somehow not working properly
     return string
 
 
-def first_split(string):
-    words = re.split(r'\\n|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\|\?|\}|\^', string) #?not splitting
+def code_split(string):
+    words = re.split(r'\\n|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\|\?|\}|\^|#', string)
     words = list(filter(lambda a: a != "", words))
     return words
 
@@ -269,3 +293,4 @@ if __name__ == '__main__':
     get_positions()
     # line_type_identifier("ciao")
     # code_parser3()
+    # print(word_extractor("ciao mamma /*css rff*/"))

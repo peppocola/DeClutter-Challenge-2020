@@ -1,7 +1,7 @@
 from pandas import read_csv
 import csv
 from src.keys import non_information, information, datapath, reports_outpath, scores_outpath, \
-    csv_ex, java_tags
+    csv_ex, java_tags, java_keywords
 
 
 def write_counter(counter):
@@ -35,7 +35,6 @@ def write_stats(stats):
 
     f = read_csv(name_full)
     keep_col = ['classifier', 'precision_no', 'recall_no', 'f1-score_no', 'precision_yes', 'recall_yes', 'f1-score_yes',
-                # keep some cols
                 'accuracy', 'precision_macro avg', 'recall_macro avg', 'f1-score_macro avg']
     new_f = f[keep_col]
     new_f.to_csv(name_short, index=False)
@@ -76,27 +75,32 @@ def csv_counter():
     return counter
 
 
-def commentparser():
+def comment_parser():
     lines = read_csv(datapath,
                      sep=",", usecols=['comment'])
     return lines.comment.fillna(' ').tolist()
 
 
-def labelparser():
+def label_parser():
     lines = read_csv(datapath,
                      sep=",", usecols=['non-information'])
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
-def linkparser():
+def link_parser():
     lines = read_csv(datapath,
                      sep=",", usecols=['path_to_file'])
     return lines['path_to_file'].tolist()
 
 
-def tagsparser():
+def tags_parser():
     with open(java_tags, 'r') as f:
         return [line for line in f.read().splitlines()]
+
+
+def keyword_parser():
+    with open(java_keywords, 'r') as f:
+        return [keyword for keyword in f.read().splitlines()]
 
 
 def link_line_type_extractor():
@@ -107,7 +111,7 @@ def link_line_type_extractor():
 
 if __name__ == "__main__":
     write_counter(csv_counter())
-    print(labelparser())
-    print(commentparser())
-    print(linkparser())
+    print(label_parser())
+    print(comment_parser())
+    print(link_parser())
     print(link_line_type_extractor())

@@ -10,6 +10,7 @@ stop_words = STOP_WORDS
 # Load English tokenizer, tagger, parser, NER and word vectors
 parser = English()
 
+
 # Creating our tokenizer function
 def spacy_tokenizer(sentence):
     # Creating our token object, which is used to create documents with linguistic annotations.
@@ -23,6 +24,7 @@ def spacy_tokenizer(sentence):
 
     # return preprocessed list of tokens
     return mytokens
+
 
 if __name__ == "__main__":
     print(spacy_tokenizer("    hi     guys      ;. im      Mario  "))

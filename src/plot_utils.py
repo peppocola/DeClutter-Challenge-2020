@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from src.keys import non_information, information, img_outpath, reports_outpath
-from src.csv_utils import commentparser, labelparser, tagsparser
+from src.csv_utils import comment_parser, label_parser, tags_parser
 import re
+from src.feature_extract import jaccard
 
 
-# takes a confusion matrix and plots it
 def saveHeatmap(cm, name):
     sns.heatmap(cm, square=False, annot=True, cbar=True, fmt="d", xticklabels=["no", "yes"],
                 yticklabels=["no", "yes"])
@@ -17,8 +17,8 @@ def saveHeatmap(cm, name):
 
 
 def plot_length():
-    comments = np.array([len(x) for x in commentparser()])
-    labels = np.array(labelparser())
+    comments = np.array([len(x) for x in comment_parser()])
+    labels = np.array(label_parser())
 
     sample_ni = []
     sample_nni = []
@@ -43,9 +43,9 @@ def plot_length():
 def has_tags_analysis():
     has_tags = 1
     no_tags = 0
-    tags = tagsparser()
-    comments = commentparser()
-    labels = np.array(labelparser())
+    tags = tags_parser()
+    comments = comment_parser()
+    labels = np.array(label_parser())
 
     tag_comment = []
     for comment in comments:
@@ -74,17 +74,17 @@ def has_tags_analysis():
             no_tags_negative += 1
         i += 1
     with open(reports_outpath + "has_tags" + ".txt", 'w') as f:
-        f.write("yes w tags = " + str(tags_positive) + "/" + str(tags_positive+no_tags_positive) + "\n")
-        f.write("yes wout tags = " + str(no_tags_positive) + "/" + str(tags_positive+no_tags_positive) + "\n")
-        f.write("no w tags = " + str(tags_negative) + "/" + str(tags_negative+no_tags_negative) + "\n")
-        f.write("no wout tags = " + str(no_tags_negative) + "/" + str(tags_negative+no_tags_negative) + "\n")
+        f.write("yes w tags = " + str(tags_positive) + "/" + str(tags_positive + no_tags_positive) + "\n")
+        f.write("yes wout tags = " + str(no_tags_positive) + "/" + str(tags_positive + no_tags_positive) + "\n")
+        f.write("no w tags = " + str(tags_negative) + "/" + str(tags_negative + no_tags_negative) + "\n")
+        f.write("no wout tags = " + str(no_tags_negative) + "/" + str(tags_negative + no_tags_negative) + "\n")
     assert tags_positive + tags_negative + no_tags_positive + no_tags_negative == len(labels)
 
 
 def tags_analysis():
-    labels = np.array(labelparser())
-    comments = commentparser()
-    tags = tagsparser()
+    labels = np.array(label_parser())
+    comments = comment_parser()
+    tags = tags_parser()
 
     tags_dict = {}
     for tag in tags:
@@ -105,8 +105,39 @@ def tags_analysis():
                 f.write("\tyes-> " + str(tags_dict[key][non_information]) + "\n")
 
 
+def plot_jaccard():
+    jaccard_scores = np.array(jaccard())
+    labels = np.array(label_parser())
+
+    sample_ni = []
+    sample_nni = []
+    for x in range(len(labels)):
+        if labels[x] == non_information:
+            sample_ni.append(jaccard_scores[x])
+        else:
+            sample_nni.append(jaccard_scores[x])
+
+    plt.hist(sample_ni, bins='auto', color='blue')
+
+    plt.xlabel('jacc_score')
+    plt.ylabel('number of comments')
+    plt.legend(['yes'])
+    plt.text(0.7, 70, 'yes avg jacc=' + str(round(sum(sample_nni) / len(sample_nni), 3)))
+    plt.savefig(img_outpath + 'jacc_distribution_yes.png')
+    plt.clf()
+
+    plt.hist(sample_nni, bins='auto', color='orange')
+
+    plt.xlabel('jacc_score')
+    plt.ylabel('number of comments')
+    plt.legend(['no'])
+    plt.text(0.27, 140, 'no avg jacc= ' + str(round(sum(sample_ni) / len(sample_ni), 3)))
+    plt.savefig(img_outpath + 'jacc_distribution_no.png')
+    plt.clf()
+
+
 if __name__ == "__main__":
-    # plot_length()
+    plot_length()
     has_tags_analysis()
-    print()
     tags_analysis()
+    plot_jaccard()
