@@ -1,5 +1,4 @@
-aggiungere lunghezza come feature
-token java nei commenti (proporzione tra token e parole) (jaccard)
+token java nei commenti (proporzione tra token e parole)
 tag nei commenti javadoc
 dove si trovano i commenti (posizione)
 individuare feature extra-testuali
@@ -14,3 +13,5 @@ yes/no labels
 lemma or not lemma dilemma (non cambia granchè)
 precisione e richiamo per classe
 multilayer perception
+jaccard
+aggiungere lunghezza come feature

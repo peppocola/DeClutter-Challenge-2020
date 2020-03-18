@@ -156,15 +156,15 @@ def get_lines():
     return lines
 
 
-def get_code_words():
+def get_code_words(stemming=True, rem_keyws=True):
     lines = get_lines()
     words = []
     for line in lines:
-        words.append(word_extractor(line))
+        words.append(word_extractor(line, stemming, rem_keyws))
     return words
 
 
-def word_extractor(string):
+def word_extractor(string, stemming=True, rem_keyws=True):
     string = remove_line_comment(string)
     string = remove_block_comment(string)
     splitted = code_split(string)
@@ -173,7 +173,12 @@ def word_extractor(string):
         camel_case_parts = camel_case_split(part)
         for camel in camel_case_parts:
             words.append(camel.lower())
-    return stem(remove_keywords(words))
+    if stemming and rem_keyws:
+        return stem(remove_keywords(words))
+    elif stemming:
+        return stem(words)
+    else:
+        return remove_keywords(words)
 
 
 def remove_keywords(words):
