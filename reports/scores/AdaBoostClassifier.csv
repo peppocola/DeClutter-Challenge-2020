@@ -1,0 +1,2 @@
+precision_no,recall_no,f1-score_no,support_no,precision_yes,recall_yes,f1-score_yes,support_yes,accuracy,precision_macro avg,recall_macro avg,f1-score_macro avg,support_macro avg,precision_weighted avg,recall_weighted avg,f1-score_weighted avg,support_weighted avg
+0.85,0.85,0.85,743,0.63,0.64,0.64,304,0.79,0.74,0.75,0.75,1047,0.79,0.79,0.79,1047
