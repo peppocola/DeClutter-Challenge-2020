@@ -1,8 +1,5 @@
-token java nei commenti (proporzione tra token e parole)
-tag nei commenti javadoc
+token java nei commenti (proporzione tra token e parole) (?)
 dove si trovano i commenti (posizione)
-individuare feature extra-testuali
-random forest
 classificatore con queste feature (tag etc)
 parser -> classi sintattiche
 
@@ -15,3 +12,5 @@ precisione e richiamo per classe
 multilayer perception
 jaccard
 aggiungere lunghezza come feature
+random forest
+tag nei commenti javadoc

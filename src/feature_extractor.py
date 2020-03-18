@@ -1,15 +1,18 @@
 import re
-from src.csv_utils import comment_parser, tags_parser
+from src.csv_utils import get_comments, get_tags, get_javadoc_comments
 from src.code_parser import get_code_words, word_extractor
 
 
-def tag_for_comment():
+def get_tag_for_comment():
+    return get_tag_for_list(get_comments())
+
+
+def get_tag_for_list(comments):
     tags_dict = {}
-    comments = comment_parser()
     for i in range(len(comments)):
         tags_dict[i] = []
 
-    tags = tags_parser()
+    tags = get_tags()
     for tag in tags:
         i = 0
         for comment in comments:
@@ -20,7 +23,7 @@ def tag_for_comment():
 
 
 def get_comment_words(stemming=True, rem_keyws=True):
-    comments = comment_parser()
+    comments = get_comments()
     words = []
     for comment in comments:
         words.append(word_extractor(comment, stemming, rem_keyws))
@@ -44,10 +47,14 @@ def get_jaccard_sim(first, second):
 
 
 def get_comment_length():
-    comments = comment_parser()
+    comments = get_comments()
     return [len(comment) for comment in comments]
 
 
-if __name__ == '__main__':
-    jaccard()
+def get_javadoc_tags():
+    return get_tag_for_list(get_javadoc_comments())
 
+
+if __name__ == '__main__':
+    #jaccard()
+    print(get_javadoc_tags())

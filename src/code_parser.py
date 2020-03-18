@@ -2,7 +2,7 @@ import antlr4
 import javalang
 from java.antlr_unit import Java8Parser, Java8Lexer
 from src.url_utils import get_text_by_url
-from src.csv_utils import link_line_type_extractor, keyword_parser
+from src.csv_utils import get_link_line_type, get_keywords
 import re
 from src.keys import line
 from nltk.stem.porter import *
@@ -129,7 +129,7 @@ def get_positions():
     text_link = 1
     comment_line = 2
 
-    data = link_line_type_extractor()
+    data = get_link_line_type()
     #random.shuffle(data)
     file = []
     for row in data:
@@ -147,7 +147,7 @@ def get_lines():
     text_link = 1
     comment_line = 2
 
-    data = link_line_type_extractor()
+    data = get_link_line_type()
     lines = []
     for row in data:
         code = get_text_by_url(row[text_link])
@@ -182,7 +182,7 @@ def word_extractor(string, stemming=True, rem_keyws=True):
 
 
 def remove_keywords(words):
-    keywords = keyword_parser()
+    keywords = get_keywords()
     non_keywords = []
     for word in words:
         if word not in keywords:

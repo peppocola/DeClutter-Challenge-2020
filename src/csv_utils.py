@@ -1,7 +1,7 @@
 from pandas import read_csv
 import csv
 from src.keys import non_information, information, datapath, reports_outpath, scores_outpath, \
-    csv_ex, java_tags, java_keywords
+    csv_ex, java_tags, java_keywords, javadoc
 
 
 def write_counter(counter):
@@ -75,43 +75,61 @@ def csv_counter():
     return counter
 
 
-def comment_parser():
+def get_comments():
     lines = read_csv(datapath,
                      sep=",", usecols=['comment'])
     return lines.comment.fillna(' ').tolist()
 
 
-def label_parser():
+def get_type():
+    lines = read_csv(datapath,
+                     sep=",", usecols=['type'])
+    return lines.type.fillna(' ').tolist()
+
+
+def get_labels():
     lines = read_csv(datapath,
                      sep=",", usecols=['non-information'])
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
-def link_parser():
+def get_links():
     lines = read_csv(datapath,
                      sep=",", usecols=['path_to_file'])
     return lines['path_to_file'].tolist()
 
 
-def tags_parser():
+def get_tags():
     with open(java_tags, 'r') as f:
         return [line for line in f.read().splitlines()]
 
 
-def keyword_parser():
+def get_keywords():
     with open(java_keywords, 'r') as f:
         return [keyword for keyword in f.read().splitlines()]
 
 
-def link_line_type_extractor():
+def get_link_line_type():
     lines = read_csv(datapath,
                      sep=",", usecols=['type', 'path_to_file', 'begin_line'])
     return lines.values.tolist()
 
 
+def get_javadoc_comments():
+    comments = get_comments()
+    types = get_type()
+
+    javadoc_comments = []
+    for i in range(len(comments)):
+        if types[i] == javadoc:
+            javadoc_comments.append(comments[i])
+
+    return javadoc_comments
+
+
 if __name__ == "__main__":
     write_counter(csv_counter())
-    print(label_parser())
-    print(comment_parser())
-    print(link_parser())
-    print(link_line_type_extractor())
+    print(get_labels())
+    print(get_comments())
+    print(get_links())
+    print(get_link_line_type())

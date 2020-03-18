@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Bagging
     GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict, KFold
 from src.code_parser import code_split, tokenizer
-from src.csv_utils import comment_parser, label_parser, write_stats
+from src.csv_utils import get_comments, get_labels, write_stats
 from src.keys import non_information, information
 from src.plot_utils import saveHeatmap
 
@@ -20,8 +20,8 @@ def classify(classifiers=None):
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier]
     voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, LinearSVC]
-    comments = comment_parser()  # the features we want to analyze
-    labels = label_parser()  # the labels, or answers, we want to testers against
+    comments = get_comments()  # the features we want to analyze
+    labels = get_labels()  # the labels, or answers, we want to testers against
 
     tfidf_vector = TfidfVectorizer(tokenizer=tokenizer)
     stats = {}
@@ -58,11 +58,6 @@ def classify(classifiers=None):
     stats["Voting"] = voting_report
     return stats
 
-
-def alalal():
-    mamt = TfidfVectorizer(tokenizer=tokenizer)
-    mamt.fit_transform(comment_parser())
-    print(mamt.vocabulary_)
 
 if __name__ == "__main__":
     start_time = time.time()

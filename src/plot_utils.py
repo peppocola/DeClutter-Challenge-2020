@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from src.keys import non_information, information, img_outpath, reports_outpath
-from src.csv_utils import comment_parser, label_parser, tags_parser
+from src.csv_utils import get_comments, get_labels, get_tags
 import re
-from src.feature_extract import jaccard
+from src.feature_extractor import jaccard
 
 
 def saveHeatmap(cm, name):
@@ -17,8 +17,8 @@ def saveHeatmap(cm, name):
 
 
 def plot_length():
-    comments = np.array([len(x) for x in comment_parser()])
-    labels = np.array(label_parser())
+    comments = np.array([len(x) for x in get_comments()])
+    labels = np.array(get_labels())
 
     sample_ni = []
     sample_nni = []
@@ -43,9 +43,9 @@ def plot_length():
 def has_tags_analysis():
     has_tags = 1
     no_tags = 0
-    tags = tags_parser()
-    comments = comment_parser()
-    labels = np.array(label_parser())
+    tags = get_tags()
+    comments = get_comments()
+    labels = np.array(get_labels())
 
     tag_comment = []
     for comment in comments:
@@ -82,9 +82,9 @@ def has_tags_analysis():
 
 
 def tags_analysis():
-    labels = np.array(label_parser())
-    comments = comment_parser()
-    tags = tags_parser()
+    labels = np.array(get_labels())
+    comments = get_comments()
+    tags = get_tags()
 
     tags_dict = {}
     for tag in tags:
@@ -107,7 +107,7 @@ def tags_analysis():
 
 def plot_jaccard():
     jaccard_scores = np.array(jaccard())
-    labels = np.array(label_parser())
+    labels = np.array(get_labels())
 
     sample_ni = []
     sample_nni = []
