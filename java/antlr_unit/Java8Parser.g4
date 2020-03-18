@@ -288,7 +288,7 @@ classModifier
 	|	'abstract'
 	|	'static'
 	|	'final'
-	|	'strictfp'
+	|  	'strictfp'
 	;
 
 typeParameters
