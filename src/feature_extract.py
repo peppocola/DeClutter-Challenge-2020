@@ -19,11 +19,11 @@ def tag_for_comment():
     return tags_dict
 
 
-def get_comment_words():
+def get_comment_words(stemming=True, rem_keyws=True):
     comments = comment_parser()
     words = []
     for comment in comments:
-        words.append(word_extractor(comment))
+        words.append(word_extractor(comment, stemming, rem_keyws))
     return words
 
 
@@ -41,6 +41,11 @@ def get_jaccard_sim(first, second):
     b = set(second)
     c = a.intersection(b)
     return float(len(c)) / (len(a) + len(b) - len(c))
+
+
+def get_comment_length():
+    comments = comment_parser()
+    return [len(comment) for comment in comments]
 
 
 if __name__ == '__main__':
