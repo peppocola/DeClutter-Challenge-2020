@@ -199,6 +199,8 @@ def stem(words):
 
 
 def camel_case_split(string):
+    if not string:
+        return string
     words = [[string[0]]]
 
     for c in string[1:]:
@@ -292,10 +294,21 @@ def code_split(string):
     return words
 
 
+def tokenizer(string):
+    tokens = code_split(string)
+    new_tokens = []
+    for token in tokens:
+        for t in camel_case_split(token):
+            new_tokens.append(t)
+    return new_tokens
+
+
 if __name__ == '__main__':
     # code = open('../testers/test.txt', 'r').read()
     # code_parser(code, 151, javadoc)
-    get_positions()
+    # get_positions()
     # line_type_identifier("ciao")
     # code_parser3()
     # print(word_extractor("ciao mamma /*css rff*/"))
+    print(tokenizer("tuaMadreQuellaTroia"))
+    print(camel_case_split("tuaMadreQuellaTroia"))
