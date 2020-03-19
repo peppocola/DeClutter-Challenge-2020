@@ -15,14 +15,14 @@ def write_counter(counter):
                                      counter[key][information] + counter[key][non_information]), 2)])
 
 
-def write_stats(stats):
-    name_full = scores_outpath + "full_stats" + csv_ex
-    name_short = scores_outpath + "short_stats" + csv_ex
+def write_stats(stats, folder):
+    name_full = scores_outpath + folder + "/full_stats" + csv_ex
+    name_short = scores_outpath + folder + "/short_stats" + csv_ex
 
     rows = []
     header = []
     for key in stats:
-        desc_row, values = write_classifier_stats(stats[key], key)  # write single scores
+        desc_row, values = write_classifier_stats(stats[key], key, folder)  # write single scores
         header = desc_row
         rows.append(values)
     header.insert(0, "classifier")
@@ -40,8 +40,8 @@ def write_stats(stats):
     new_f.to_csv(name_short, index=False)
 
 
-def write_classifier_stats(stats, key):
-    path = scores_outpath + key + csv_ex
+def write_classifier_stats(stats, key, folder):
+    path = scores_outpath + folder + '/' + key + csv_ex
     desc_row = []
     value_row = []
     for k in stats:

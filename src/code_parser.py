@@ -289,7 +289,7 @@ def remove_block_comment(string):
 
 
 def code_split(string):
-    words = re.split(r'\\n|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\|\?|\}|\^|#', string)
+    words = re.split(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#', string)
     words = list(filter(lambda a: a != "", words))
     return words
 
@@ -299,7 +299,7 @@ def tokenizer(string):
     new_tokens = []
     for token in tokens:
         for t in camel_case_split(token):
-            new_tokens.append(t)
+            new_tokens.append(t.lower())
     return new_tokens
 
 
@@ -312,3 +312,4 @@ if __name__ == '__main__':
     # print(word_extractor("ciao mamma /*css rff*/"))
     print(tokenizer("tuaMadreQuellaTroia"))
     print(camel_case_split("tuaMadreQuellaTroia"))
+    print(code_split("????"))

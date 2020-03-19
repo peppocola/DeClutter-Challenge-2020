@@ -7,12 +7,12 @@ import re
 from src.feature_extractor import jaccard
 
 
-def saveHeatmap(cm, name):
+def saveHeatmap(cm, name, folder):
     sns.heatmap(cm, square=False, annot=True, cbar=True, fmt="d", xticklabels=["no", "yes"],
                 yticklabels=["no", "yes"])
     plt.text(-0.25, 1.15, 'predicted', rotation=90)
     plt.text(0.8, 2.2, 'actual')
-    plt.savefig(img_outpath + 'heatmap_' + name)
+    plt.savefig(img_outpath + folder + '/heatmap_' + name)
     plt.clf()
 
 
