@@ -1,4 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
@@ -7,11 +8,13 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, \
     GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict, KFold
+from sklearn.tree import DecisionTreeClassifier
+
 from src.code_parser import tokenizer
 from src.csv_utils import get_comments, get_labels, write_stats
 from src.keys import non_information, information
 from src.plot_utils import saveHeatmap
-from src.feature_extractor import jaccard, get_comment_length
+from src.feature_extractor import jaccard, get_comment_length, get_links_tag
 
 import time
 
@@ -19,7 +22,7 @@ import time
 def classify(classifiers=None, folder="tfidf-classifiers"):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
-                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier]
+                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, LinearSVC]
     comments = get_comments()  # the features we want to analyze
     labels = get_labels()  # the labels, or answers, we want to testers against
@@ -64,12 +67,13 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
 def feat_classify(classifiers=None, folder="features-classifiers"):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
-                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier]
+                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     jacc_score = jaccard()
     length = [x/100 for x in get_comment_length()]
+    links_tag = get_links_tag()
     features = []
     for i in range(len(length)):
-        features.append([jacc_score[i], length[i]])
+        features.append([jacc_score[i], length[i], links_tag[i]])
     labels = get_labels()
 
     stats = {}

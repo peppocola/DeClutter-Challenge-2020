@@ -21,18 +21,18 @@ def get_tag_for_comment():
 
 
 def get_tag_for_list(comments):
-    tags_dict = {}
+    tags_list = []
     for i in range(len(comments)):
-        tags_dict[i] = []
+        tags_list.append([])
 
     tags = get_tags()
     for tag in tags:
         i = 0
         for comment in comments:
             if re.search(tag, comment):
-                tags_dict[i].append(tag)
+                tags_list[i].append(tag)
             i += 1
-    return tags_dict
+    return tags_list
 
 
 def get_comment_words(stemming=True, rem_keyws=True):
@@ -68,7 +68,27 @@ def get_javadoc_tags():
     return get_tag_for_list(get_javadoc_comments())
 
 
+def get_links_tag():
+    has_link = True
+
+    tags = get_tag_for_comment()
+    bool_vector = []
+    for list in tags:
+        found = False
+        for tag in list:
+            if tag == "{@link.*}":
+                found = True
+                bool_vector.append(has_link)
+                break
+        if not found:
+            bool_vector.append(not has_link)
+    return bool_vector
+
+
+
 if __name__ == '__main__':
     #jaccard()
     #print(get_javadoc_tags())
-    print(get_tfidf_features())
+    #print(get_tfidf_features())
+    print(get_tag_for_comment())
+    print(get_links_tag())
