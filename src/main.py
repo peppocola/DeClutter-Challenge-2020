@@ -1,13 +1,12 @@
-from src.classifier import classify
-from src.csv_utils import write_counter, csv_counter, write_stats
-from src.plot_utils import plot_length, tags_analysis, has_tags_analysis
-import time
+from src.classifier import classify, feat_classify
+from src.csv_utils import write_counter, csv_counter
+from src.plot_utils import plot_length, tags_analysis, has_tags_analysis, plot_jaccard
 
 write_counter(csv_counter())
 plot_length()
-start_time = time.time()
-write_stats(classify())
+plot_jaccard()
+classify()
+feat_classify()
 has_tags_analysis()
 tags_analysis()
 
-print("--- %s seconds ---" % (time.time() - start_time))

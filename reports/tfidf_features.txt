@@ -205,7 +205,7 @@ edit
 db
 exists
 another
-unlikely?
+unlikely
 possibility
 both
 disk
@@ -391,7 +391,6 @@ deep
 d
 canceled
 highly
-unlikely
 bug
 report
 body
@@ -590,7 +589,6 @@ out
 whether
 was
 actually
-not?
 shall
 journal
 just
@@ -693,7 +691,6 @@ situation
 maybe
 give
 warning
-?
 shown
 closing
 needs
@@ -1434,7 +1431,6 @@ checkbox
 collapse
 built
 ieee
-url?
 select
 links
 500
@@ -1551,7 +1547,6 @@ jcomponent
 detailing
 nature
 explicit
-matched?
 yes
 generated
 graph
@@ -1625,7 +1620,6 @@ writer
 listing
 etc
 fetch
-%0
 normalizing
 regarding
 tex
@@ -1673,7 +1667,6 @@ indirectly
 constructed
 fixme
 prefix
-removed?
 latter
 able
 know
@@ -1718,7 +1711,6 @@ plain
 additionally
 wysiwyg
 ieeetran
-opened?
 basic
 keeps
 activated
@@ -1903,7 +1895,7 @@ infer
 externalfiletype
 stripped
 reasonable
-70%
+70
 quote
 explorer
 strings
@@ -1965,7 +1957,7 @@ break
 logger
 throwable
 unexpected
-100%
+100
 perceived
 incidentally
 lots

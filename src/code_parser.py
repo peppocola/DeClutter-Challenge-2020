@@ -1,86 +1,8 @@
-import antlr4
-import javalang
-from java.antlr_unit import Java8Parser, Java8Lexer
 from src.url_utils import get_text_by_url
 from src.csv_utils import get_link_line_type, get_keywords
-import re
 from src.keys import line
 from nltk.stem.porter import *
-
-
-def code_parser2():
-    code = " public static void showContextMenu(TextArea textArea, ContextMenu contextMenu, ContextMenuEvent e) {"
-    tree = javalang.parse.parse(code)
-    return tree.types
-
-
-def is_class_declaration(code):
-    lexer = Java8Lexer.Java8Lexer(antlr4.InputStream(code))
-    stream = antlr4.CommonTokenStream(lexer)
-    parser = Java8Parser.Java8Parser(stream)
-    tree = parser.classDeclaration()
-    print(tree.toStringTree(recog=parser))
-
-
-def is_method_declaration(code):
-    lexer = Java8Lexer.Java8Lexer(antlr4.InputStream(code))
-    stream = antlr4.CommonTokenStream(lexer)
-    parser = Java8Parser.Java8Parser(stream)
-    tree = parser.methodDeclaration()
-    print(tree.toStringTree(recog=parser))
-
-
-def is_statement(code):
-    lexer = Java8Lexer.Java8Lexer(antlr4.InputStream(code))
-    stream = antlr4.CommonTokenStream(lexer)
-    parser = Java8Parser.Java8Parser(stream)
-    tree = parser.statement()
-    print(tree.toStringTree(recog=parser))
-
-
-def is_local_varable_declaration(code):
-    lexer = Java8Lexer.Java8Lexer(antlr4.InputStream(code))
-    stream = antlr4.CommonTokenStream(lexer)
-    parser = Java8Parser.Java8Parser(stream)
-    tree = parser.localVariableDeclaration()
-    print(tree.toStringTree(recog=parser))
-
-
-def is_if(code):
-    lexer = Java8Lexer.Java8Lexer(antlr4.InputStream(code))
-    stream = antlr4.CommonTokenStream(lexer)
-    parser = Java8Parser.Java8Parser(stream)
-    tree = parser.ifThenStatement()
-    print(tree.toStringTree(recog=parser))
-
-
-def line_type_identifier(code):
-    code = "public static void showContextMenu(TextArea textArea, ContextMenu contextMenu, ContextMenuEvent e) {"
-    is_class_declaration(code)
-    is_method_declaration(code)
-    is_local_varable_declaration(code)
-    is_statement(code)
-
-    input()
-    code = "TABLE_ICONS.put(SpecialField.PRINTED, icon);"
-    is_class_declaration(code)
-    is_method_declaration(code)
-    is_local_varable_declaration(code)
-    is_statement(code)
-
-    input()
-    code = "public static class{"
-    is_class_declaration(code)
-    is_method_declaration(code)
-    is_local_varable_declaration(code)
-    is_statement(code)
-
-    code = "if (identicalFields.contains(field)) {"
-    is_class_declaration(code)
-    is_method_declaration(code)
-    is_local_varable_declaration(code)
-    is_statement(code)
-    is_if(code)
+from spacy.lang.en.stop_words import STOP_WORDS
 
 
 def get_line(code, comment_line, comment_type):
@@ -140,6 +62,7 @@ def get_positions():
         print(word_extractor(focus_line))
 
         # print(line_type_identifier(focus_line))
+        # INCOMPLETE
 
 
 def get_lines():
@@ -289,19 +212,33 @@ def remove_block_comment(string):
 
 
 def code_split(string):
-    words = re.split(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#', string)
+    words = re.split(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#|%', string)
     words = list(filter(lambda a: a != "", words))
     return words
 
 
-def tokenizer(string):
+def remove_stopwords(tokens, language='English'):
+    stop_words = STOP_WORDS
+    relevant_words = []
+    for token in tokens:
+        if token not in stop_words:
+            relevant_words.append(token)
+    return relevant_words
+
+
+def tokenizer(string, rem_stop=False, stemming=False, rem_kws=False):
     tokens = code_split(string)
     new_tokens = []
     for token in tokens:
         for t in camel_case_split(token):
             new_tokens.append(t.lower())
+    if rem_stop:
+        new_tokens = remove_stopwords(new_tokens)
+    if rem_kws:
+        new_tokens = remove_keywords(new_tokens)
+    if stemming:
+        new_tokens = stem(new_tokens)
     return new_tokens
-
 
 if __name__ == '__main__':
     # code = open('../testers/test.txt', 'r').read()
@@ -310,6 +247,6 @@ if __name__ == '__main__':
     # line_type_identifier("ciao")
     # code_parser3()
     # print(word_extractor("ciao mamma /*css rff*/"))
-    print(tokenizer("tuaMadreQuellaTroia"))
+    print(tokenizer("int"))
     print(camel_case_split("tuaMadreQuellaTroia"))
     print(code_split("????"))

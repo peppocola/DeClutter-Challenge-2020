@@ -22,7 +22,8 @@ import time
 def classify(classifiers=None, folder="tfidf-classifiers"):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
-                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
+                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
+                       LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, LinearSVC]
     comments = get_comments()  # the features we want to analyze
     labels = get_labels()  # the labels, or answers, we want to testers against
@@ -32,7 +33,8 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
     list_results = []
     for i in classifiers:
         classifier = i()
-        pipe = Pipeline([('vectorizer', tfidf_vector), ('classifier', classifier)])
+        pipe = Pipeline(
+            [('vectorizer', tfidf_vector), ('classifier', classifier)])
 
         result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10, shuffle=True))
         if i in voting:
@@ -67,9 +69,10 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
 def feat_classify(classifiers=None, folder="features-classifiers"):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
-                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
+                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
+                       LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     jacc_score = jaccard()
-    length = [x/100 for x in get_comment_length()]
+    length = [x / 100 for x in get_comment_length()]
     links_tag = get_links_tag()
     features = []
     for i in range(len(length)):
