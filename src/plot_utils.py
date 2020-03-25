@@ -7,7 +7,7 @@ import re
 from src.feature_extractor import jaccard
 
 
-def saveHeatmap(cm, name, folder):
+def save_heatmap(cm, name, folder):
     sns.heatmap(cm, square=False, annot=True, cbar=True, fmt="d", xticklabels=["no", "yes"],
                 yticklabels=["no", "yes"])
     plt.text(-0.25, 1.15, 'predicted', rotation=90)
@@ -105,9 +105,20 @@ def tags_analysis():
                 f.write("\tyes-> " + str(tags_dict[key][non_information]) + "\n")
 
 
-def plot_jaccard():
-    jaccard_scores = np.array(jaccard())
+def plot_jaccard(stemming=True, rem_kws=True):
+    jaccard_scores = np.array(jaccard(stemming, rem_kws))
     labels = np.array(get_labels())
+    img_ext = '.png'
+    outpath_yes = img_outpath + 'jacc_distribution_yes'
+    outpath_no = img_outpath + 'jacc_distribution_no'
+    if stemming:
+        outpath_yes += '_stem_'
+        outpath_no += '_stem'
+    if rem_kws:
+        outpath_yes += '_remkws'
+        outpath_no += '_remkws'
+    outpath_yes += img_ext
+    outpath_no += img_ext
 
     sample_ni = []
     sample_nni = []
@@ -117,27 +128,32 @@ def plot_jaccard():
         else:
             sample_nni.append(jaccard_scores[x])
 
-    plt.hist(sample_ni, bins='auto', color='blue')
+    plt.hist(sample_ni, bins='auto', color='orange')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
+    plt.ylim(0, 200)
+    plt.xlim(0, 1)
     plt.legend(['yes'])
-    plt.text(0.7, 70, 'yes avg jacc=' + str(round(sum(sample_nni) / len(sample_nni), 3)))
-    plt.savefig(img_outpath + 'jacc_distribution_yes.png')
+    plt.text(0.7, 150, 'yes avg jacc=' + str(round(sum(sample_nni) / len(sample_nni), 3)))
+    plt.savefig(outpath_yes)
     plt.clf()
 
-    plt.hist(sample_nni, bins='auto', color='orange')
+    plt.hist(sample_nni, bins='auto', color='blue')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
+    plt.ylim(0, 200)
+    plt.xlim(0, 1)
     plt.legend(['no'])
-    plt.text(0.27, 140, 'no avg jacc= ' + str(round(sum(sample_ni) / len(sample_ni), 3)))
-    plt.savefig(img_outpath + 'jacc_distribution_no.png')
+    plt.text(0.7, 150, 'no avg jacc= ' + str(round(sum(sample_ni) / len(sample_ni), 3)))
+    plt.savefig(outpath_no)
     plt.clf()
 
 
 if __name__ == "__main__":
-    plot_length()
-    has_tags_analysis()
-    tags_analysis()
-    plot_jaccard()
+    #plot_length()
+    #has_tags_analysis()
+    #tags_analysis()
+    #plot_jaccard(stemming=False, rem_kws=False)
+    plot_jaccard(stemming=False, rem_kws=False)

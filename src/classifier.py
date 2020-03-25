@@ -13,7 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from src.code_parser import tokenizer
 from src.csv_utils import get_comments, get_labels, write_stats
 from src.keys import non_information, information
-from src.plot_utils import saveHeatmap
+from src.plot_utils import save_heatmap
 from src.feature_extractor import jaccard, get_comment_length, get_links_tag
 
 import time
@@ -40,7 +40,7 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
         if i in voting:
             list_results.append(result)
         cm = confusion_matrix(result, labels, [information, non_information])
-        saveHeatmap(cm, i.__name__, folder)
+        save_heatmap(cm, i.__name__, folder)
 
         print(i.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
@@ -60,18 +60,18 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
     voting_report = classification_report(labels, voting_results, digits=3, target_names=['no', 'yes'],
                                           output_dict=True)
     cm = confusion_matrix(voting_results, labels, [information, non_information])
-    saveHeatmap(cm, "Voting", folder)
+    save_heatmap(cm, "Voting", folder)
     stats["Voting"] = voting_report
     write_stats(stats, folder)
     return stats
 
 
-def feat_classify(classifiers=None, folder="features-classifiers"):
+def feat_classify(classifiers=None, folder="features-classifiers", stemming=True, rem_kws=True):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
-    jacc_score = jaccard()
+    jacc_score = jaccard(stemming, rem_kws)
     length = [x / 100 for x in get_comment_length()]
     links_tag = get_links_tag()
     features = []
@@ -87,7 +87,7 @@ def feat_classify(classifiers=None, folder="features-classifiers"):
         result = cross_val_predict(pipe, features, labels, cv=KFold(n_splits=10, shuffle=True))
 
         cm = confusion_matrix(result, labels, [information, non_information])
-        saveHeatmap(cm, i.__name__, folder)
+        save_heatmap(cm, i.__name__, folder)
 
         print(i.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
@@ -99,6 +99,6 @@ def feat_classify(classifiers=None, folder="features-classifiers"):
 
 if __name__ == "__main__":
     start_time = time.time()
-    classify()
-    feat_classify()
+    #classify()
+    feat_classify(stemming=False, rem_kws=False)
     print("--- %s seconds ---" % (time.time() - start_time))
