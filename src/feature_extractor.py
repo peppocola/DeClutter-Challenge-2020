@@ -1,9 +1,32 @@
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
-from src.csv_utils import get_comments, get_tags, get_javadoc_comments
+from sklearn.feature_selection import SelectKBest, chi2, f_classif
+
+from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels
 from src.code_parser import get_code_words, word_extractor, tokenizer
 from src.keys import reports_outpath
 import numpy as np
+
+
+def get_k_best_features(scoring, k=20):
+    vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
+    X = vectorizer.fit_transform(get_comments())
+
+    chi2score = scoring(X, get_labels())[0]
+
+    wscores = zip(vectorizer.get_feature_names(), chi2score)
+    wchi2 = sorted(wscores, key=lambda x: x[1])
+    topchi2 = zip(*wchi2[-k:])
+    show = list(topchi2)
+    return show
+
+
+def get_chi2_k_best_features(k=20):
+    return get_k_best_features(chi2, k)
+
+
+def get_fclassif_best_features(k=20):
+    return get_k_best_features(f_classif, k)
 
 
 def get_tfidf_features(max_features=None):
@@ -107,6 +130,8 @@ def get_links_tag():
 if __name__ == '__main__':
     # jaccard()
     # print(get_javadoc_tags())
-    print(get_top_n_tfidf_features(50))
+    #print(get_top_n_tfidf_features(50))
+    print(get_chi2_k_best_features())
+    print(get_fclassif_best_features())
     # print(get_tag_for_comment())
     # print(get_links_tag())
