@@ -12,13 +12,12 @@ def get_k_best_features(scoring, k=20):
     vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
     X = vectorizer.fit_transform(get_comments())
 
-    chi2score = scoring(X, get_labels())[0]
+    scores = scoring(X, get_labels())[0]
 
-    wscores = zip(vectorizer.get_feature_names(), chi2score)
-    wchi2 = sorted(wscores, key=lambda x: x[1])
-    topchi2 = zip(*wchi2[-k:])
-    show = list(topchi2)
-    return show
+    wscores = zip(vectorizer.get_feature_names(), scores)
+    sorted_scores = sorted(wscores, key=lambda x: x[1])
+    top_k = zip(*sorted_scores[-k:])
+    return list(top_k)
 
 
 def get_chi2_k_best_features(k=20):
