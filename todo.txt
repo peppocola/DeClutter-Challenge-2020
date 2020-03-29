@@ -1,6 +1,5 @@
 dove si trovano i commenti (posizione) espressioni regolari -> nodi non terminali
 
-classificatore tfidf + features (hstack?)
 spiegare linea rilevante
 
 DONE:
@@ -16,3 +15,4 @@ tag nei commenti javadoc
 wrapping (feature selection) [???????? too long]
 threshold for chi2 e f_classif [no threshold]
 information gain [no threshold]
+classificatore tfidf + features

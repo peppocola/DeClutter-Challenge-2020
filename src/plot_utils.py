@@ -20,22 +20,22 @@ def plot_length():
     comments = np.array([len(x) for x in get_comments()])
     labels = np.array(get_labels())
 
-    sample_ni = []
-    sample_nni = []
+    sample_yes = []
+    sample_no = []
     for x in range(len(comments)):
         if labels[x] == non_information:
-            sample_ni.append(comments[x])
+            sample_yes.append(comments[x])
         else:
-            sample_nni.append(comments[x])
+            sample_no.append(comments[x])
 
-    plt.hist(sample_nni, bins='auto', color='orange')
-    plt.hist(sample_ni, bins='auto', color='blue')
+    plt.hist(sample_no, bins='auto', color='orange')
+    plt.hist(sample_yes, bins='auto', color='blue')
 
     plt.xlabel('comment length')
     plt.ylabel('number of comments')
     plt.legend(['no', 'yes'])
-    plt.text(1000, 80, 'yes avg length= ' + str(round(sum(sample_ni) / len(sample_ni), 2)))
-    plt.text(1000, 90, 'no avg length=' + str(round(sum(sample_nni) / len(sample_nni), 2)))
+    plt.text(1000, 80, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
+    plt.text(1000, 90, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
     plt.savefig(img_outpath + 'length_distribution.png')
     plt.clf()
 
@@ -120,33 +120,33 @@ def plot_jaccard(stemming=True, rem_kws=True):
     outpath_yes += img_ext
     outpath_no += img_ext
 
-    sample_ni = []
-    sample_nni = []
+    sample_yes = []
+    sample_no = []
     for x in range(len(labels)):
         if labels[x] == non_information:
-            sample_ni.append(jaccard_scores[x])
+            sample_yes.append(jaccard_scores[x])
         else:
-            sample_nni.append(jaccard_scores[x])
+            sample_no.append(jaccard_scores[x])
 
-    plt.hist(sample_ni, bins='auto', color='orange')
+    plt.hist(sample_yes, bins='auto', color='orange')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
     plt.ylim(0, 200)
     plt.xlim(0, 1)
     plt.legend(['yes'])
-    plt.text(0.7, 150, 'yes avg jacc=' + str(round(sum(sample_nni) / len(sample_nni), 3)))
+    plt.text(0.7, 150, 'yes avg jacc=' + str(round(sum(sample_yes) / len(sample_yes), 3)))
     plt.savefig(outpath_yes)
     plt.clf()
 
-    plt.hist(sample_nni, bins='auto', color='blue')
+    plt.hist(sample_no, bins='auto', color='blue')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
     plt.ylim(0, 200)
     plt.xlim(0, 1)
     plt.legend(['no'])
-    plt.text(0.7, 150, 'no avg jacc= ' + str(round(sum(sample_ni) / len(sample_ni), 3)))
+    plt.text(0.7, 150, 'no avg jacc= ' + str(round(sum(sample_no) / len(sample_no), 3)))
     plt.savefig(outpath_no)
     plt.clf()
 
