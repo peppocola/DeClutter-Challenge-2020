@@ -157,3 +157,4 @@ if __name__ == "__main__":
     #tags_analysis()
     #plot_jaccard(stemming=False, rem_kws=False)
     plot_jaccard(stemming=False, rem_kws=False)
+    plot_jaccard()

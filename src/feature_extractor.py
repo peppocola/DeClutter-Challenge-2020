@@ -1,11 +1,41 @@
 import re
+
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_selection import SelectKBest, chi2, f_classif
+from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.pipeline import Pipeline
 
 from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels
 from src.code_parser import get_code_words, word_extractor, tokenizer
 from src.keys import reports_outpath
+from mlxtend.feature_selection import SequentialFeatureSelector as sfs
 import numpy as np
+
+
+def get_k_best_features_sfs(classifiers, k=(1, 500), forward=True, scoring='f1_macro'):
+    X = get_comments()
+    y = get_labels()
+
+    for classifier in classifiers:
+        clf = classifier()
+
+        sfs1 = sfs(clf,
+                   k_features=k,
+                   forward=forward,
+                   floating=False,
+                   verbose=2,
+                   scoring=scoring,
+                   cv=5)
+
+        pipeline = Pipeline(
+            [('tfidf', TfidfVectorizer(tokenizer=tokenizer, lowercase=False)), ('sfs_feature_selection', sfs1),
+             ('clf', clf)])
+        pipeline.fit(X, y)
+        # y_pred = pipeline.predict(X_dev)
+        support = pipeline.named_steps['sfs_feature_selection'].support_
+        feature_names = pipeline.named_steps['tfidf'].get_feature_names()
+        print(np.array(feature_names)[support])
 
 
 def get_k_best_features(scoring, k=20):
@@ -13,11 +43,20 @@ def get_k_best_features(scoring, k=20):
     X = vectorizer.fit_transform(get_comments())
 
     scores = scoring(X, get_labels())[0]
-
     wscores = zip(vectorizer.get_feature_names(), scores)
     sorted_scores = sorted(wscores, key=lambda x: x[1])
     top_k = zip(*sorted_scores[-k:])
     return list(top_k)
+
+
+def get_MI_k_best_features(k=20):
+    vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
+    X = vectorizer.fit_transform(get_comments())
+    select = SelectKBest(mutual_info_classif, k)
+    X_new = select.fit_transform(X, get_labels())
+
+    feature_names = vectorizer.get_feature_names()
+    return np.array(feature_names)[select.get_support()]
 
 
 def get_chi2_k_best_features(k=20):
@@ -26,6 +65,24 @@ def get_chi2_k_best_features(k=20):
 
 def get_fclassif_best_features(k=20):
     return get_k_best_features(f_classif, k)
+
+
+def get_k_best_features_rfe(classifiers):
+    X = get_comments()
+    y = get_labels()
+    out_dict = {}
+    for classifier in classifiers:
+        rfe = RFECV(estimator=classifier(), step=1)
+
+        pipeline = Pipeline(
+            [('tfidf', TfidfVectorizer(tokenizer=tokenizer, lowercase=False)), ('rfe_feature_selection', rfe),
+             ('clf', classifier())])
+        pipeline.fit(X, y)
+        # y_pred = pipeline.predict(X_dev)
+        support = pipeline.named_steps['rfe_feature_selection'].support_
+        feature_names = pipeline.named_steps['tfidf'].get_feature_names()
+        out_dict[classifier.__name__] = np.array(feature_names)[support]
+    return out_dict
 
 
 def get_tfidf_features(max_features=None):
@@ -128,9 +185,13 @@ def get_links_tag():
 
 if __name__ == '__main__':
     # jaccard()
-    # print(get_javadoc_tags())
-    #print(get_top_n_tfidf_features(50))
+    print(get_javadoc_tags())
+    print(get_top_n_tfidf_features(50))
     print(get_chi2_k_best_features())
-    print(get_fclassif_best_features())
-    # print(get_tag_for_comment())
-    # print(get_links_tag())
+    # print(get_fclassif_best_features())
+    # dicty = get_k_best_features_rfe([LogisticRegression])
+    # print(dicty)
+    # print(len(dicty[LogisticRegression.__name__]))
+    # get_k_best_features_sfs([LogisticRegression], forward=True)
+    # get_k_best_features_sfs([LogisticRegression], forward=False)
+    print(get_MI_k_best_features(k=50))
