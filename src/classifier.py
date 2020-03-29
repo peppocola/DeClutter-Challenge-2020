@@ -2,7 +2,6 @@ from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.metrics import confusion_matrix, classification_report, matthews_corrcoef
-from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
 from sklearn.svm import LinearSVC, SVC
 from sklearn.neural_network import MLPClassifier
@@ -10,7 +9,6 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Bagging
     GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict, KFold
 from sklearn.tree import DecisionTreeClassifier
-
 from src.code_parser import tokenizer
 from src.csv_utils import get_comments, get_labels, write_stats
 from src.keys import non_information, information
@@ -26,14 +24,15 @@ import time
 def classify(classifiers=None, folder="tfidf-classifiers"):
     if classifiers is None:
         classifiers = [DummyClassifier, BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier,
-                       RandomForestClassifier,
-                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
-                       LogisticRegression, DecisionTreeClassifier, SGDClassifier]
+                       RandomForestClassifier, AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier,
+                       GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
+
     voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, LinearSVC]
     comments = get_comments()  # the features we want to analyze
     labels = get_labels()  # the labels, or answers, we want to testers against
 
     tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
+    features = tfidf_vector.fit_transform(comments)
     stats = {}
     list_results = []
     for i in classifiers:
@@ -41,10 +40,7 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
             classifier = i(strategy='most_frequent')
         else:
             classifier = i()
-        pipe = Pipeline(
-            [('vectorizer', tfidf_vector), ('classifier', classifier)])
-
-        result = cross_val_predict(pipe, comments, labels, cv=KFold(n_splits=10, shuffle=True))
+        result = cross_val_predict(classifier, features, labels, cv=KFold(n_splits=10, shuffle=True))
         if i in voting:
             list_results.append(result)
         cm = confusion_matrix(result, labels, [information, non_information])
@@ -76,12 +72,13 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
     return stats
 
 
-def feat_classify(classifiers=None, folder="features-classifiers", stemming=True, rem_kws=True):
+def feat_classify(classifiers=None, folder="features-classifiers", stemming=True, rem_kws=True, jacc_score=None):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
-    jacc_score = jaccard(stemming, rem_kws)
+    if jacc_score is None:
+        jacc_score = jaccard(stemming, rem_kws)
     length = [x / 100 for x in get_comment_length()]
     links_tag = get_links_tag()
     features = []
@@ -90,32 +87,29 @@ def feat_classify(classifiers=None, folder="features-classifiers", stemming=True
     labels = get_labels()
 
     stats = {}
-    for i in classifiers:
-        classifier = i()
-        pipe = Pipeline([('classifier', classifier)])
-
-        result = cross_val_predict(pipe, features, labels, cv=KFold(n_splits=10, shuffle=True))
+    for classifier in classifiers:
+        result = cross_val_predict(classifier(), features, labels, cv=KFold(n_splits=10, shuffle=True))
 
         cm = confusion_matrix(result, labels, [information, non_information])
-        save_heatmap(cm, i.__name__, folder)
+        save_heatmap(cm, classifier.__name__, folder)
 
-        print(i.__name__)
+        print(classifier.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
         report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, result)
         print(report)
-        stats[i.__name__] = report
+        stats[classifier.__name__] = report
     write_stats(stats, folder)
     return stats
 
 
-def both_classify(classifiers=None, folder="both-classifiers", stemming=True, rem_kws=True):
+def both_classify(classifiers=None, folder="both-classifiers", stemming=True, rem_kws=True, jacc_score=None):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
-
-    jacc_score = np.array(jaccard(stemming, rem_kws))
-    length = [x for x in get_comment_length()]
+    if jacc_score is None:
+        jacc_score = np.array(jaccard(stemming, rem_kws))
+    length = [x/100 for x in get_comment_length()]
     length = np.array(length)
     comments = get_comments()
     labels = get_labels()
@@ -124,23 +118,19 @@ def both_classify(classifiers=None, folder="both-classifiers", stemming=True, re
     dt_matrix = tfidf_vector.fit_transform(comments)
     features = sparse.hstack((dt_matrix, length.reshape((length.shape[0], 1))))
     features = sparse.hstack((features, jacc_score.reshape((length.shape[0], 1))))
-    # features = np.concatenate((features, jacc_score), axis=1)
 
     stats = {}
-    for i in classifiers:
-        classifier = i()
-        pipe = Pipeline([('classifier', classifier)])
-
-        result = cross_val_predict(pipe, features, labels, cv=KFold(n_splits=10, shuffle=True))
+    for classifier in classifiers:
+        result = cross_val_predict(classifier(), features, labels, cv=KFold(n_splits=10, shuffle=True))
 
         cm = confusion_matrix(result, labels, [information, non_information])
-        save_heatmap(cm, i.__name__, folder)
+        save_heatmap(cm, classifier.__name__, folder)
 
-        print(i.__name__)
+        print(classifier.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
         report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, result)
         print(report)
-        stats[i.__name__] = report
+        stats[classifier.__name__] = report
     write_stats(stats, folder)
     return stats
 
@@ -149,8 +139,10 @@ if __name__ == "__main__":
     start_time = time.time()
     print("tfidf -- BASELINE\n")
     classify()
+    print("jacc-score calc")
+    jacc = np.array(jaccard())
     print("features\n")
-    feat_classify()
+    feat_classify(jacc_score=jacc)
     print("both\n")
-    both_classify()
+    both_classify(jacc_score=jacc)
     print("--- %s seconds ---" % (time.time() - start_time))

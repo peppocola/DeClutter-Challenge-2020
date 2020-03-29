@@ -183,6 +183,10 @@ def get_links_tag():
     return bool_vector
 
 
+def normalize(nparray):
+   return (nparray - nparray.mean(axis=0)) / nparray.std(axis=0)
+
+
 if __name__ == '__main__':
     # jaccard()
     print(get_javadoc_tags())
