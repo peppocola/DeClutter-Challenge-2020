@@ -1,6 +1,7 @@
+from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, matthews_corrcoef
 from sklearn.pipeline import Pipeline
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
 from sklearn.svm import LinearSVC, SVC
@@ -16,12 +17,16 @@ from src.keys import non_information, information
 from src.plot_utils import save_heatmap
 from src.feature_extractor import jaccard, get_comment_length, get_links_tag
 
+import numpy as np
+from scipy import sparse
+
 import time
 
 
 def classify(classifiers=None, folder="tfidf-classifiers"):
     if classifiers is None:
-        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
+        classifiers = [DummyClassifier, BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier,
+                       RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, LinearSVC]
@@ -32,7 +37,10 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
     stats = {}
     list_results = []
     for i in classifiers:
-        classifier = i()
+        if i is DummyClassifier:
+            classifier = i(strategy='most_frequent')
+        else:
+            classifier = i()
         pipe = Pipeline(
             [('vectorizer', tfidf_vector), ('classifier', classifier)])
 
@@ -44,6 +52,7 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
 
         print(i.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
+        report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, result)
         print(report)
         stats[i.__name__] = report
 
@@ -59,6 +68,7 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
 
     voting_report = classification_report(labels, voting_results, digits=3, target_names=['no', 'yes'],
                                           output_dict=True)
+    voting_report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, voting_results)
     cm = confusion_matrix(voting_results, labels, [information, non_information])
     save_heatmap(cm, "Voting", folder)
     stats["Voting"] = voting_report
@@ -91,6 +101,44 @@ def feat_classify(classifiers=None, folder="features-classifiers", stemming=True
 
         print(i.__name__)
         report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
+        report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, result)
+        print(report)
+        stats[i.__name__] = report
+    write_stats(stats, folder)
+    return stats
+
+
+def both_classify(classifiers=None, folder="both-classifiers", stemming=True, rem_kws=True):
+    if classifiers is None:
+        classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
+                       AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
+                       LogisticRegression, DecisionTreeClassifier, SGDClassifier]
+
+    jacc_score = np.array(jaccard(stemming, rem_kws))
+    length = [x for x in get_comment_length()]
+    length = np.array(length)
+    comments = get_comments()
+    labels = get_labels()
+
+    tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
+    dt_matrix = tfidf_vector.fit_transform(comments)
+    features = sparse.hstack((dt_matrix, length.reshape((length.shape[0], 1))))
+    features = sparse.hstack((features, jacc_score.reshape((length.shape[0], 1))))
+    # features = np.concatenate((features, jacc_score), axis=1)
+
+    stats = {}
+    for i in classifiers:
+        classifier = i()
+        pipe = Pipeline([('classifier', classifier)])
+
+        result = cross_val_predict(pipe, features, labels, cv=KFold(n_splits=10, shuffle=True))
+
+        cm = confusion_matrix(result, labels, [information, non_information])
+        save_heatmap(cm, i.__name__, folder)
+
+        print(i.__name__)
+        report = classification_report(labels, result, digits=3, target_names=['no', 'yes'], output_dict=True)
+        report[matthews_corrcoef.__name__] = matthews_corrcoef(labels, result)
         print(report)
         stats[i.__name__] = report
     write_stats(stats, folder)
@@ -99,6 +147,10 @@ def feat_classify(classifiers=None, folder="features-classifiers", stemming=True
 
 if __name__ == "__main__":
     start_time = time.time()
-    #classify()
-    feat_classify(stemming=False, rem_kws=False)
+    print("tfidf -- BASELINE\n")
+    classify()
+    print("features\n")
+    feat_classify()
+    print("both\n")
+    both_classify()
     print("--- %s seconds ---" % (time.time() - start_time))

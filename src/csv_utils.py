@@ -35,7 +35,7 @@ def write_stats(stats, folder):
 
     f = read_csv(name_full)
     keep_col = ['classifier', 'precision_no', 'recall_no', 'f1-score_no', 'precision_yes', 'recall_yes', 'f1-score_yes',
-                'accuracy', 'precision_macro avg', 'recall_macro avg', 'f1-score_macro avg']
+                'accuracy', 'precision_macro avg', 'recall_macro avg', 'f1-score_macro avg', 'matthews_corrcoef']
     new_f = f[keep_col]
     new_f.to_csv(name_short, index=False)
 

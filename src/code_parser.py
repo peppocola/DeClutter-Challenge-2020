@@ -212,7 +212,7 @@ def remove_block_comment(string):
 
 
 def code_split(string):
-    words = re.split(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|@|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#|%', string)
+    words = re.split(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\s|\.|/|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#|%', string)
     words = list(filter(lambda a: a != "", words))
     return words
 
@@ -247,6 +247,6 @@ if __name__ == '__main__':
     # line_type_identifier("ciao")
     # code_parser3()
     # print(word_extractor("ciao mamma /*css rff*/"))
-    print(tokenizer("int"))
-    print(camel_case_split("tuaMadreQuellaTroia"))
-    print(code_split("????"))
+    print(tokenizer("tuaMadre@QuellaTroia @param"))
+    print(camel_case_split("tuaMadre@QuellaTroia @param"))
+    print(code_split("tuaMadre@QuellaTroia @param"))
