@@ -4,7 +4,7 @@ import seaborn as sns
 from src.keys import non_information, information, img_outpath, reports_outpath
 from src.csv_utils import get_comments, get_labels, get_tags
 import re
-from src.feature_extractor import jaccard
+from src.features_utils import jaccard
 
 
 def save_heatmap(cm, name, folder):
@@ -105,8 +105,9 @@ def tags_analysis():
                 f.write("\tyes-> " + str(tags_dict[key][non_information]) + "\n")
 
 
-def plot_jaccard(stemming=True, rem_kws=True):
-    jaccard_scores = np.array(jaccard(stemming, rem_kws))
+def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
+    if jacc_score is None:
+        jacc_score = np.array(jaccard(stemming, rem_kws))
     labels = np.array(get_labels())
     img_ext = '.png'
     outpath_yes = img_outpath + 'jacc_distribution_yes'
@@ -124,11 +125,11 @@ def plot_jaccard(stemming=True, rem_kws=True):
     sample_no = []
     for x in range(len(labels)):
         if labels[x] == non_information:
-            sample_yes.append(jaccard_scores[x])
+            sample_yes.append(jacc_score[x])
         else:
-            sample_no.append(jaccard_scores[x])
+            sample_no.append(jacc_score[x])
 
-    plt.hist(sample_yes, bins='auto', color='orange')
+    plt.hist(sample_yes, bins='auto', color='blue')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
@@ -139,7 +140,7 @@ def plot_jaccard(stemming=True, rem_kws=True):
     plt.savefig(outpath_yes)
     plt.clf()
 
-    plt.hist(sample_no, bins='auto', color='blue')
+    plt.hist(sample_no, bins='auto', color='orange')
 
     plt.xlabel('jacc_score')
     plt.ylabel('number of comments')
@@ -156,5 +157,6 @@ if __name__ == "__main__":
     #has_tags_analysis()
     #tags_analysis()
     #plot_jaccard(stemming=False, rem_kws=False)
-    plot_jaccard(stemming=False, rem_kws=False)
-    plot_jaccard()
+    jacc = jaccard()
+    plot_jaccard(stemming=False, rem_kws=False, jacc_score=jacc)
+    plot_jaccard(jacc_score=jacc)

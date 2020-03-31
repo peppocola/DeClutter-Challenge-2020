@@ -1,5 +1,3 @@
-dove si trovano i commenti (posizione) espressioni regolari -> nodi non terminali
-
 spiegare linea rilevante
 
 DONE:

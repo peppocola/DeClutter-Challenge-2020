@@ -1,15 +1,16 @@
 import re
 
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
-from sklearn.linear_model import LogisticRegression
-
 from sklearn.pipeline import Pipeline
-
-from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels
-from src.code_parser import get_code_words, word_extractor, tokenizer
-from src.keys import reports_outpath
 from mlxtend.feature_selection import SequentialFeatureSelector as sfs
+from sklearn.preprocessing import LabelEncoder
+
+from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type
+from src.code_parser import get_code_words, word_extractor, tokenizer
+from src.keys import reports_outpath, javadoc, line, block
+
 import numpy as np
 
 
@@ -72,7 +73,7 @@ def get_k_best_features_rfe(classifiers):
     y = get_labels()
     out_dict = {}
     for classifier in classifiers:
-        rfe = RFECV(estimator=classifier(), step=1)
+        rfe = RFECV(estimator=classifier(), step=1, scoring='f1_macro')
 
         pipeline = Pipeline(
             [('tfidf', TfidfVectorizer(tokenizer=tokenizer, lowercase=False)), ('rfe_feature_selection', rfe),
@@ -141,8 +142,11 @@ def get_comment_words(stemming=True, rem_keyws=True):
     return words
 
 
-def jaccard(stemming=True, rem_keyws=True):
-    code = get_code_words(stemming, rem_keyws)
+def jaccard(stemming=True, rem_keyws=True, lines=None):
+    if lines is None:
+        code = get_code_words(stemming, rem_keyws)
+    else:
+        code = code = get_code_words(stemming, rem_keyws, lines)
     comments = get_comment_words(stemming, rem_keyws)
     score = []
     for i in range(len(comments)):
@@ -187,15 +191,22 @@ def normalize(nparray):
    return (nparray - nparray.mean(axis=0)) / nparray.std(axis=0)
 
 
+def get_type_encoded():
+    types = get_type()
+    le = LabelEncoder()
+    return le.fit_transform(types)
+
+
 if __name__ == '__main__':
     # jaccard()
-    print(get_javadoc_tags())
-    print(get_top_n_tfidf_features(50))
-    print(get_chi2_k_best_features())
+    # print(get_javadoc_tags())
+    # print(get_top_n_tfidf_features(50))
+    # print(get_chi2_k_best_features())
     # print(get_fclassif_best_features())
-    # dicty = get_k_best_features_rfe([LogisticRegression])
-    # print(dicty)
+    dicty = get_k_best_features_rfe([RandomForestClassifier])
+    print(dicty)
     # print(len(dicty[LogisticRegression.__name__]))
     # get_k_best_features_sfs([LogisticRegression], forward=True)
     # get_k_best_features_sfs([LogisticRegression], forward=False)
-    print(get_MI_k_best_features(k=50))
+    # print(get_MI_k_best_features(k=50))
+    #print(get_type_encoded())

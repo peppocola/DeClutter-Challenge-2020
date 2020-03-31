@@ -1,29 +1,39 @@
+from sklearn.preprocessing import LabelEncoder
+
 from src.url_utils import get_text_by_url
 from src.csv_utils import get_link_line_type, get_keywords
 from src.keys import line
 from nltk.stem.porter import *
 from spacy.lang.en.stop_words import STOP_WORDS
+from src.java_re import *
 
 
 def get_line(code, comment_line, comment_type):
     code = code.splitlines()
     try:
         if comment_type == line:
-            if not re.match(r"^[\s]*//.*", code[comment_line - 1]):  # if the line doesn't start as a comment, the comment refers to this line
-                if not re.match(r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*//.*[\s]*$", code[comment_line - 1]):  # if the line isnt just brackets and some keywords, the foucs line is the comment_line
+            if not re.match(r"^[\s]*//.*", code[
+                comment_line - 1]):  # if the line doesn't start as a comment, the comment refers to this line
+                if not re.match(r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*//.*[\s]*$", code[
+                    comment_line - 1]):  # if the line isnt just brackets and some keywords, the foucs line is the comment_line
                     return code[comment_line - 1]
             i = 0
             while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"[\s]*[^}{](try|else|finally)[\s]*{?", code[comment_line + i]):  # while the line starts as a comment, ignore it. I do this because they use multiple line comment to simulate a block
                 i += 1
-            if re.match(r"^[\s]*}.*", code[comment_line + i]) or re.match(r"[\s]*(try|else|finally)[\s]*{?", code[comment_line + i]):  # if this matches, the block is empty so i take the first non comment non empty line before the comment.
+            if re.match(r"^[\s]*}.*", code[comment_line + i]) or re.match(r"[\s]*(try|else|finally)[\s]*{?", code[
+                comment_line + i]):  # if this matches, the block is empty so i take the first non comment non empty line before the comment.
                 i = -2
-                while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(r"^[\s]*\*/.*", code[comment_line + i]):  # while the line is a comment or is blank, ignore it
+                while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$",
+                                                                                  code[comment_line + i]) or re.match(
+                        r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(
+                        r"^[\s]*\*/.*", code[comment_line + i]):  # while the line is a comment or is blank, ignore it
                     i -= 1
             return code[comment_line + i]  # comment refers to that
         # r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*.*$"
 
         else:  # block or javadoc
-            if not re.match(r"^[\s]*/\*.*", code[comment_line - 1]):  # if the line doesn't start as a comment, the comment refers to this line
+            # if the line doesn't start as a comment, the comment refers to this line
+            if not re.match(r"^[\s]*/\*.*", code[comment_line - 1]):
                 return code[comment_line - 1]
             if comment_line >= len(code) - 1:
                 return code[comment_line - 2]
@@ -32,37 +42,48 @@ def get_line(code, comment_line, comment_type):
                 while not re.match(r"^[\s]*\*/", code[comment_line + i]):
                     i += 1
                 i += 1
-            while re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*@[^\s]*[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"[\s]*[^}{](try|else|finally)[\s]*{?", code[comment_line + i]):  # while the line starts as a comment or is blank, or is an annotation, ignore it
+            # while the line starts as a comment or is blank, or is an annotation, ignore it
+            while re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*@[^\s]*[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"[\s]*[^}{](try|else|finally)[\s]*{?", code[comment_line + i]):
                 i += 1
-            if re.match(r"^[\s]*}[\s]*.*", code[comment_line + i]) or re.match(r"[\s]*(try|else|finally)[\s]*{?", code[comment_line + i]):  # if this matches, probabily the comment refers to the line before
+            # if this matches, probabily the comment refers to the line before
+            if re.match(r"^[\s]*}[\s]*.*", code[comment_line + i]) or re.match(r"[\s]*(try|else|finally)[\s]*{?", code[comment_line + i]):
                 i = -2
-                while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$",
-                                                                                  code[comment_line + i]) or re.match(
-                        r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(
-                        r"^[\s]*\*/.*", code[comment_line + i]):  # while the line is a comment or is blank, ignore it
+                # while the line is a comment or is blank, ignore it
+                while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(r"^[\s]*\*/.*", code[comment_line + i]):
                     i -= 1
             return code[comment_line + i]
     except IndexError:
         return ""
 
 
-def get_positions():
+def get_positions(lines=None):
     comment_type = 0
     text_link = 1
     comment_line = 2
 
+    positions = []
     data = get_link_line_type()
-    #random.shuffle(data)
-    file = []
+    if lines is None:
+        lines = get_lines()
+    i = 0
     for row in data:
-        print(row[comment_line], row[comment_type], row[text_link]+"#L"+str(row[comment_line]))
-        code = get_text_by_url(row[text_link])
-        focus_line = get_line(code, row[comment_line], row[comment_type])
+        print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
+        focus_line = lines[i]
         print(focus_line)
-        print(word_extractor(focus_line))
+        p = get_position(focus_line)
+        positions.append(p)
+        print(p)
+        i += 1
+    return positions
 
-        # print(line_type_identifier(focus_line))
-        # INCOMPLETE
+
+def get_positions_encoded(lines=None):
+    if lines is None:
+        positions = get_positions()
+    else:
+        positions = get_positions(lines)
+    le = LabelEncoder()
+    return le.fit_transform(positions)
 
 
 def get_lines():
@@ -79,8 +100,9 @@ def get_lines():
     return lines
 
 
-def get_code_words(stemming=True, rem_keyws=True):
-    lines = get_lines()
+def get_code_words(stemming=True, rem_keyws=True, lines=None):
+    if lines is None:
+        lines = get_lines()
     words = []
     for line in lines:
         words.append(word_extractor(line, stemming, rem_keyws))
@@ -217,7 +239,7 @@ def code_split(string):
     return words
 
 
-def remove_stopwords(tokens, language='English'):
+def remove_stopwords(tokens):
     stop_words = STOP_WORDS
     relevant_words = []
     for token in tokens:
@@ -240,13 +262,14 @@ def tokenizer(string, rem_stop=False, stemming=False, rem_kws=False):
         new_tokens = stem(new_tokens)
     return new_tokens
 
+
 if __name__ == '__main__':
     # code = open('../testers/test.txt', 'r').read()
     # code_parser(code, 151, javadoc)
-    # get_positions()
+    get_positions()
     # line_type_identifier("ciao")
     # code_parser3()
     # print(word_extractor("ciao mamma /*css rff*/"))
-    print(tokenizer("tuaMadre@QuellaTroia @param"))
-    print(camel_case_split("tuaMadre@QuellaTroia @param"))
-    print(code_split("tuaMadre@QuellaTroia @param"))
+    # print(tokenizer("tuaMadre@QuellaTroia @param"))
+    # print(camel_case_split("tuaMadre@QuellaTroia @param"))
+    # print(code_split("tuaMadre@QuellaTroia @param"))

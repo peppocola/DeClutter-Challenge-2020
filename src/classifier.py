@@ -3,17 +3,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, SGDClassifier
 from sklearn.metrics import confusion_matrix, classification_report, matthews_corrcoef
 from sklearn.naive_bayes import MultinomialNB, ComplementNB, BernoulliNB
+from sklearn.preprocessing import scale
 from sklearn.svm import LinearSVC, SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, \
     GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict, KFold
 from sklearn.tree import DecisionTreeClassifier
-from src.code_parser import tokenizer
+from src.code_parser import tokenizer, get_positions_encoded, get_lines
 from src.csv_utils import get_comments, get_labels, write_stats
 from src.keys import non_information, information
 from src.plot_utils import save_heatmap
-from src.feature_extractor import jaccard, get_comment_length, get_links_tag
+from src.features_utils import jaccard, get_comment_length, get_links_tag, get_type_encoded
 
 import numpy as np
 from scipy import sparse
@@ -72,18 +73,21 @@ def classify(classifiers=None, folder="tfidf-classifiers"):
     return stats
 
 
-def feat_classify(classifiers=None, folder="features-classifiers", stemming=True, rem_kws=True, jacc_score=None):
+def feat_classify(classifiers=None, folder="features-classifiers", stemming=True, rem_kws=True, jacc_score=None,
+                  positions=None):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     if jacc_score is None:
         jacc_score = jaccard(stemming, rem_kws)
+    if positions is None:
+        positions = get_positions_encoded()
     length = [x / 100 for x in get_comment_length()]
-    links_tag = get_links_tag()
+    types = get_type_encoded()
     features = []
     for i in range(len(length)):
-        features.append([jacc_score[i], length[i], links_tag[i]])
+        features.append([jacc_score[i], length[i], types[i], positions[i]])
     labels = get_labels()
 
     stats = {}
@@ -102,15 +106,18 @@ def feat_classify(classifiers=None, folder="features-classifiers", stemming=True
     return stats
 
 
-def both_classify(classifiers=None, folder="both-classifiers", stemming=True, rem_kws=True, jacc_score=None):
+def both_classify(classifiers=None, folder="both-classifiers", stemming=True, rem_kws=True, jacc_score=None,
+                  positions=None):
     if classifiers is None:
         classifiers = [BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                        AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                        LogisticRegression, DecisionTreeClassifier, SGDClassifier]
     if jacc_score is None:
         jacc_score = np.array(jaccard(stemming, rem_kws))
-    length = [x/100 for x in get_comment_length()]
-    length = np.array(length)
+    if positions is None:
+        positions = np.array(get_positions_encoded())
+    length = np.array([x for x in get_comment_length()])
+    types = np.array(get_type_encoded())
     comments = get_comments()
     labels = get_labels()
 
@@ -118,7 +125,8 @@ def both_classify(classifiers=None, folder="both-classifiers", stemming=True, re
     dt_matrix = tfidf_vector.fit_transform(comments)
     features = sparse.hstack((dt_matrix, length.reshape((length.shape[0], 1))))
     features = sparse.hstack((features, jacc_score.reshape((length.shape[0], 1))))
-
+    features = sparse.hstack((features, types.reshape((length.shape[0], 1))))
+    features = sparse.hstack((features, positions.reshape((length.shape[0], 1))))
     stats = {}
     for classifier in classifiers:
         result = cross_val_predict(classifier(), features, labels, cv=KFold(n_splits=10, shuffle=True))
@@ -137,12 +145,16 @@ def both_classify(classifiers=None, folder="both-classifiers", stemming=True, re
 
 if __name__ == "__main__":
     start_time = time.time()
-    print("tfidf -- BASELINE\n")
-    classify()
-    print("jacc-score calc")
-    jacc = np.array(jaccard())
+    #print("tfidf -- BASELINE\n")
+    #classify()
+    print("getting relevant lines")
+    lines = get_lines()
+    print("getting positions")
+    positions = get_positions_encoded(lines=lines)
+    print("jacc score calc")
+    jacc = np.array(jaccard(lines=lines))
     print("features\n")
-    feat_classify(jacc_score=jacc)
+    feat_classify(jacc_score=jacc, positions=positions)
     print("both\n")
-    both_classify(jacc_score=jacc)
+    both_classify(jacc_score=jacc, positions=positions)
     print("--- %s seconds ---" % (time.time() - start_time))
