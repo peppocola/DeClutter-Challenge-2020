@@ -7,86 +7,106 @@ from sklearn.pipeline import Pipeline
 from mlxtend.feature_selection import SequentialFeatureSelector as sfs
 from sklearn.preprocessing import LabelEncoder
 
-from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type
-from src.code_parser import get_code_words, word_extractor, tokenizer
-from src.keys import reports_outpath, javadoc, line, block
+from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type, write_csv
+from src.code_parser import get_code_words, word_extractor, tokenizer, get_lines, get_positions_encoded
+from src.keys import reports_outpath
 
 import numpy as np
 
 
-def get_k_best_features_sfs(classifiers, k=(1, 500), forward=True, scoring='f1_macro'):
-    X = get_comments()
+def do_feature_selection(method, classifier, feature_type='tfidf'):
     y = get_labels()
 
-    for classifier in classifiers:
-        clf = classifier()
+    clf = classifier()
+    if feature_type == 'tfidf':
+        features, feature_names = get_tfidf_features()
+    elif feature_type == 'nontextual':
+        features, feature_names = get_nontextual_features()
+    else:
+        raise ValueError
 
-        sfs1 = sfs(clf,
-                   k_features=k,
-                   forward=forward,
-                   floating=False,
-                   verbose=2,
-                   scoring=scoring,
-                   cv=5)
-
-        pipeline = Pipeline(
-            [('tfidf', TfidfVectorizer(tokenizer=tokenizer, lowercase=False)), ('sfs_feature_selection', sfs1),
-             ('clf', clf)])
-        pipeline.fit(X, y)
-        # y_pred = pipeline.predict(X_dev)
-        support = pipeline.named_steps['sfs_feature_selection'].support_
-        feature_names = pipeline.named_steps['tfidf'].get_feature_names()
-        print(np.array(feature_names)[support])
+    pipeline = Pipeline(
+        [('feature_selection', method), ('clf', clf)])
+    pipeline.fit(np.array(features), y)
+    if isinstance(method, sfs):
+        if feature_type == 'nontextual':
+            selected = []
+            for f in pipeline.named_steps['feature_selection'].k_feature_names_:
+                selected.append(feature_names[int(f)])
+            return selected
+        else:
+            return pipeline.named_steps['feature_selection'].k_feature_names_
+    else:
+        support = pipeline.named_steps['feature_selection'].support_
+        return np.array(feature_names)[support]
 
 
-def get_k_best_features(scoring, k=20):
+def get_best_sfs_features(classifier, k=1, forward=True, scoring='f1_macro', feature_type='tfidf'):
+    sfs_ = sfs(estimator=classifier(), k_features=k, forward=forward, floating=False, verbose=2, scoring=scoring, cv=10)
+    return do_feature_selection(sfs_, classifier, feature_type)
+
+
+def get_best_rfe_features(classifier, feature_type='tfidf'):
+    rfe = RFECV(estimator=classifier(), step=1, scoring='f1_macro')
+    return do_feature_selection(rfe, classifier, feature_type)
+
+
+def get_best_tfidf_features(scoring, k=20):
     vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
     X = vectorizer.fit_transform(get_comments())
-
-    scores = scoring(X, get_labels())[0]
-    wscores = zip(vectorizer.get_feature_names(), scores)
-    sorted_scores = sorted(wscores, key=lambda x: x[1])
-    top_k = zip(*sorted_scores[-k:])
-    return list(top_k)
+    return get_best_features(scoring, features=X, feature_names=vectorizer.get_feature_names(), k=k)
 
 
-def get_MI_k_best_features(k=20):
-    vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
-    X = vectorizer.fit_transform(get_comments())
-    select = SelectKBest(mutual_info_classif, k)
-    X_new = select.fit_transform(X, get_labels())
-
-    feature_names = vectorizer.get_feature_names()
+def get_best_features(scoring, features, feature_names, k='all', csv=False):
+    select = SelectKBest(scoring, k)
+    X_new = select.fit_transform(features, get_labels())
+    if csv:
+        write_csv(['feature', 'score'], [feature_names, select.scores_], scoring.__name__ + '_features')
     return np.array(feature_names)[select.get_support()]
 
 
-def get_chi2_k_best_features(k=20):
-    return get_k_best_features(chi2, k)
+def get_nontextual_features():
+    lines = get_lines()
+    positions = get_positions_encoded(lines=lines)
+    jacc_score = np.array(jaccard(lines=lines))
+    length = np.array([x / 100 for x in get_comment_length()])
+    types = np.array(get_type_encoded())
+
+    features = []
+    for i in range(len(length)):
+        features.append([jacc_score[i], length[i], types[i], positions[i]])
+    feature_names = ['jacc_score', 'length', 'types', 'positions']
+    return features, feature_names
 
 
-def get_fclassif_best_features(k=20):
-    return get_k_best_features(f_classif, k)
+def get_mi_best_features():
+    features = get_nontextual_features()
+    return mutual_info_classif(features, get_labels())
 
 
-def get_k_best_features_rfe(classifiers):
-    X = get_comments()
-    y = get_labels()
-    out_dict = {}
-    for classifier in classifiers:
-        rfe = RFECV(estimator=classifier(), step=1, scoring='f1_macro')
-
-        pipeline = Pipeline(
-            [('tfidf', TfidfVectorizer(tokenizer=tokenizer, lowercase=False)), ('rfe_feature_selection', rfe),
-             ('clf', classifier())])
-        pipeline.fit(X, y)
-        # y_pred = pipeline.predict(X_dev)
-        support = pipeline.named_steps['rfe_feature_selection'].support_
-        feature_names = pipeline.named_steps['tfidf'].get_feature_names()
-        out_dict[classifier.__name__] = np.array(feature_names)[support]
-    return out_dict
+def get_mi_tfidf_best_features(k=20):
+    features, feature_names = get_tfidf_features()
+    return get_best_features(scoring=mutual_info_classif, features=features, feature_names=feature_names, k=k, csv=True)
 
 
-def get_tfidf_features(max_features=None):
+def get_chi2_tfidf_best_features(k=20):
+    features, feature_names = get_tfidf_features()
+    return get_best_features(scoring=chi2, features=features, feature_names=feature_names, k=k, csv=True)
+
+
+def get_fclassif_tfidf_best_features(k=20):
+    features, feature_names = get_tfidf_features()
+    return get_best_features(scoring=f_classif, features=features, feature_names=feature_names, k=k, csv=True)
+
+
+def get_tfidf_features():
+    vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
+    features = vectorizer.fit_transform(get_comments())
+    feature_names = vectorizer.get_feature_names()
+    return features, feature_names
+
+
+def get_tfidf_vocabulary(max_features=None):
     comments = get_comments()
     if max_features is None:
         tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
@@ -100,7 +120,7 @@ def get_tfidf_features(max_features=None):
     return tfidf_vector.vocabulary_
 
 
-def get_top_n_tfidf_features(top_n=50):
+def get_top_tfidf_features(top_n=50):
     comments = get_comments()
     vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
     X = vectorizer.fit_transform(comments)
@@ -188,7 +208,7 @@ def get_links_tag():
 
 
 def normalize(nparray):
-   return (nparray - nparray.mean(axis=0)) / nparray.std(axis=0)
+    return (nparray - nparray.mean(axis=0)) / nparray.std(axis=0)
 
 
 def get_type_encoded():
@@ -198,15 +218,8 @@ def get_type_encoded():
 
 
 if __name__ == '__main__':
-    # jaccard()
-    # print(get_javadoc_tags())
-    # print(get_top_n_tfidf_features(50))
-    # print(get_chi2_k_best_features())
-    # print(get_fclassif_best_features())
-    dicty = get_k_best_features_rfe([RandomForestClassifier])
-    print(dicty)
-    # print(len(dicty[LogisticRegression.__name__]))
-    # get_k_best_features_sfs([LogisticRegression], forward=True)
-    # get_k_best_features_sfs([LogisticRegression], forward=False)
-    # print(get_MI_k_best_features(k=50))
-    #print(get_type_encoded())
+    print(get_mi_tfidf_best_features())
+    print(get_chi2_tfidf_best_features())
+    print(get_fclassif_tfidf_best_features())
+    #print(get_best_rfe_features(AdaBoostClassifier, feature_type='nontextual'))
+    print(get_best_sfs_features(forward=False, classifier=RandomForestClassifier, feature_type='nontextual', k=2))

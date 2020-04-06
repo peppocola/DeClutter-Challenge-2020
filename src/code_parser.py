@@ -1,3 +1,5 @@
+import json
+
 from sklearn.preprocessing import LabelEncoder
 
 from src.url_utils import get_text_by_url
@@ -67,12 +69,12 @@ def get_positions(lines=None):
         lines = get_lines()
     i = 0
     for row in data:
-        print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
+        #print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
         focus_line = lines[i]
-        print(focus_line)
+        #print(focus_line)
         p = get_position(focus_line)
         positions.append(p)
-        print(p)
+        #print(p)
         i += 1
     return positions
 
@@ -86,7 +88,10 @@ def get_positions_encoded(lines=None):
     return le.fit_transform(positions)
 
 
-def get_lines():
+def get_lines(serialized=True, serialize=False):
+    if serialized:
+        x = open('../serialized.json', 'r').read()
+        return json.loads(x)
     comment_type = 0
     text_link = 1
     comment_line = 2
@@ -97,6 +102,9 @@ def get_lines():
         code = get_text_by_url(row[text_link])
         focus_line = get_line(code, row[comment_line], row[comment_type])
         lines.append(focus_line)
+    if serialize:
+        x = open('../serialized.json', 'w')
+        x.write(json.dumps(lines))
     return lines
 
 
@@ -266,7 +274,10 @@ def tokenizer(string, rem_stop=False, stemming=False, rem_kws=False):
 if __name__ == '__main__':
     # code = open('../testers/test.txt', 'r').read()
     # code_parser(code, 151, javadoc)
-    get_positions()
+    print(get_lines(serialized=False, serialize=True))
+    print('first')
+    print(get_lines(serialized=True, serialize=False))
+    # get_positions()
     # line_type_identifier("ciao")
     # code_parser3()
     # print(word_extractor("ciao mamma /*css rff*/"))

@@ -1,7 +1,7 @@
 from pandas import read_csv
 import csv
 from src.keys import non_information, information, datapath, reports_outpath, scores_outpath, \
-    csv_ex, java_tags, java_keywords, javadoc
+    csv_ex, java_tags, java_keywords, javadoc, features_outpath
 
 
 def write_counter(counter):
@@ -60,6 +60,17 @@ def write_classifier_stats(stats, key, folder):
 
     value_row.insert(0, key)
     return desc_row, value_row
+
+
+def write_csv(col_names, data, filename):
+    with open(features_outpath + '\\' + filename + csv_ex, mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(col_names)
+        for i in range(len(data[0])):
+            row = []
+            for values in data:
+                row.append(values[i])
+            writer.writerow(row)
 
 
 def csv_counter():

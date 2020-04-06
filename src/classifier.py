@@ -116,7 +116,7 @@ def both_classify(classifiers=None, folder="both-classifiers", stemming=True, re
         jacc_score = np.array(jaccard(stemming, rem_kws))
     if positions is None:
         positions = np.array(get_positions_encoded())
-    length = np.array([x for x in get_comment_length()])
+    length = np.array([x/100 for x in get_comment_length()]) # the x/100 makes some classifiers work worse
     types = np.array(get_type_encoded())
     comments = get_comments()
     labels = get_labels()
@@ -145,10 +145,10 @@ def both_classify(classifiers=None, folder="both-classifiers", stemming=True, re
 
 if __name__ == "__main__":
     start_time = time.time()
-    #print("tfidf -- BASELINE\n")
-    #classify()
+    print("tfidf -- BASELINE\n")
+    classify()
     print("getting relevant lines")
-    lines = get_lines()
+    lines = get_lines(serialized=True)
     print("getting positions")
     positions = get_positions_encoded(lines=lines)
     print("jacc score calc")
