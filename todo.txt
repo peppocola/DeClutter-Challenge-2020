@@ -1,4 +1,6 @@
-spiegare linea rilevante
+scott not
+tfidf dividere per norma
+features z norm
 
 DONE:
 svm lineare/kernel rbf (LinearSVC / SVC (default kernel RBF))
@@ -14,3 +16,4 @@ wrapping (feature selection) [???????? too long]
 threshold for chi2 e f_classif [no threshold]
 information gain [no threshold]
 classificatore tfidf + features
+spiegare linea rilevante

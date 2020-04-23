@@ -1,6 +1,7 @@
 non_information = 1
 information = 0
-datapath = '../devset/declutter-gold_DevelopmentSet.csv'
+train_path = '../devset/declutter-gold_DevelopmentSet.csv'
+test_path = '../devset/test_set_20200319.csv'
 reports_outpath = '../reports/'
 scores_outpath = '../reports/scores/'
 img_outpath = '../img/'

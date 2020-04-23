@@ -58,39 +58,39 @@ def get_line(code, comment_line, comment_type):
         return ""
 
 
-def get_positions(lines=None):
+def get_positions(lines=None, set='train'):
     comment_type = 0
     text_link = 1
     comment_line = 2
 
     positions = []
-    data = get_link_line_type()
+    data = get_link_line_type(set=set)
     if lines is None:
-        lines = get_lines()
+        lines = get_lines(set=set)
     i = 0
     for row in data:
-        #print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
+        print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
         focus_line = lines[i]
-        #print(focus_line)
+        print(focus_line)
         p = get_position(focus_line)
         positions.append(p)
-        #print(p)
+        print(p)
         i += 1
     return positions
 
 
-def get_positions_encoded(lines=None):
+def get_positions_encoded(lines=None, set='train'):
     if lines is None:
         positions = get_positions()
     else:
-        positions = get_positions(lines)
+        positions = get_positions(lines, set=set)
     le = LabelEncoder()
     return le.fit_transform(positions)
 
 
-def get_lines(serialized=True, serialize=False):
+def get_lines(serialized=True, serialize=False, set='train'):
     if serialized:
-        x = open('../serialized.json', 'r').read()
+        x = open('../serialized_' + set +'.json', 'r').read()
         return json.loads(x)
     comment_type = 0
     text_link = 1
@@ -103,14 +103,14 @@ def get_lines(serialized=True, serialize=False):
         focus_line = get_line(code, row[comment_line], row[comment_type])
         lines.append(focus_line)
     if serialize:
-        x = open('../serialized.json', 'w')
+        x = open('../serialized_' + set +'.json', 'w')
         x.write(json.dumps(lines))
     return lines
 
 
-def get_code_words(stemming=True, rem_keyws=True, lines=None):
+def get_code_words(stemming=True, rem_keyws=True, lines=None, set='train'):
     if lines is None:
-        lines = get_lines()
+        lines = get_lines(set=set)
     words = []
     for line in lines:
         words.append(word_extractor(line, stemming, rem_keyws))

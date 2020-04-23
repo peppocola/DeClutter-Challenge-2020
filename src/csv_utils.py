@@ -1,7 +1,8 @@
-from pandas import read_csv
+from pandas import read_csv, DataFrame
+import numpy as np
 import csv
-from src.keys import non_information, information, datapath, reports_outpath, scores_outpath, \
-    csv_ex, java_tags, java_keywords, javadoc, features_outpath
+from src.keys import non_information, information, train_path, reports_outpath, scores_outpath, \
+    csv_ex, java_tags, java_keywords, javadoc, features_outpath, test_path
 
 
 def write_counter(counter):
@@ -74,7 +75,7 @@ def write_csv(col_names, data, filename):
 
 
 def csv_counter():
-    lines = read_csv(datapath,
+    lines = read_csv(train_path,
                      sep=",", usecols=['type', 'non-information'])
     counter = {'Javadoc': [0, 0], 'Line': [0, 0], 'Block': [0, 0]}
 
@@ -86,26 +87,38 @@ def csv_counter():
     return counter
 
 
-def get_comments():
-    lines = read_csv(datapath,
-                     sep=",", usecols=['comment'])
-    return lines.comment.fillna(' ').tolist()
+def get_comments(set='train'):
+    if set == 'train':
+        lines = read_csv(train_path,
+                         sep=",", usecols=['comment'])
+        return lines.comment.fillna(' ').tolist()
+    if set == 'test':
+        lines = read_csv(test_path,
+                         sep=",", usecols=['comment'])
+        return lines.comment.fillna(' ').tolist()
+    raise ValueError
 
 
-def get_type():
-    lines = read_csv(datapath,
-                     sep=",", usecols=['type'])
-    return lines.type.fillna(' ').tolist()
+def get_type(set='train'):
+    if set == 'train':
+        lines = read_csv(train_path,
+                         sep=",", usecols=['type'])
+        return lines.type.fillna(' ').tolist()
+    if set == 'test':
+        lines = read_csv(test_path,
+                         sep=",", usecols=['type'])
+        return lines.type.fillna(' ').tolist()
+    raise ValueError
 
 
 def get_labels():
-    lines = read_csv(datapath,
+    lines = read_csv(train_path,
                      sep=",", usecols=['non-information'])
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
 def get_links():
-    lines = read_csv(datapath,
+    lines = read_csv(train_path,
                      sep=",", usecols=['path_to_file'])
     return lines['path_to_file'].tolist()
 
@@ -120,10 +133,16 @@ def get_keywords():
         return [keyword for keyword in f.read().splitlines()]
 
 
-def get_link_line_type():
-    lines = read_csv(datapath,
-                     sep=",", usecols=['type', 'path_to_file', 'begin_line'])
-    return lines.values.tolist()
+def get_link_line_type(set='train'):
+    if set == 'train':
+        lines = read_csv(train_path,
+                         sep=",", usecols=['type', 'path_to_file', 'begin_line'])
+        return lines.values.tolist()
+    if set == 'test':
+        lines = read_csv(test_path,
+                         sep=",", usecols=['type', 'path_to_file', 'begin_line'])
+        return lines.values.tolist()
+    raise ValueError
 
 
 def get_javadoc_comments():
@@ -136,6 +155,17 @@ def get_javadoc_comments():
             javadoc_comments.append(comments[i])
 
     return javadoc_comments
+
+
+def write_results(results):
+    df = read_csv(test_path, sep=",",
+                  usecols=['ID'])
+    ids = df.ID.fillna(' ').tolist()
+    non_information_col = [0 if x == 0 else 1 for x in results]
+    out = DataFrame()
+    out['ID'] = ids
+    out['Expected'] = non_information_col
+    out.to_csv('../devset/out.csv', index=False)
 
 
 if __name__ == "__main__":

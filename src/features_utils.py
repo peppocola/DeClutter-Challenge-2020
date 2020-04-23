@@ -18,16 +18,17 @@ def do_feature_selection(method, classifier, feature_type='tfidf'):
     y = get_labels()
 
     clf = classifier()
+    pipeline = Pipeline(
+        [('feature_selection', method), ('clf', clf)])
     if feature_type == 'tfidf':
         features, feature_names = get_tfidf_features()
+        pipeline.fit(features, y)
     elif feature_type == 'nontextual':
         features, feature_names = get_nontextual_features()
+        pipeline.fit(np.array(features), y)
     else:
         raise ValueError
 
-    pipeline = Pipeline(
-        [('feature_selection', method), ('clf', clf)])
-    pipeline.fit(np.array(features), y)
     if isinstance(method, sfs):
         if feature_type == 'nontextual':
             selected = []
@@ -135,8 +136,8 @@ def get_top_tfidf_features(top_n=50):
     return top_features
 
 
-def get_tag_for_comment():
-    return get_tag_for_list(get_comments())
+def get_tag_for_comment(set='train'):
+    return get_tag_for_list(get_comments(set))
 
 
 def get_tag_for_list(comments):
@@ -154,20 +155,20 @@ def get_tag_for_list(comments):
     return tags_list
 
 
-def get_comment_words(stemming=True, rem_keyws=True):
-    comments = get_comments()
+def get_comment_words(stemming=True, rem_keyws=True, set='train'):
+    comments = get_comments(set)
     words = []
     for comment in comments:
         words.append(word_extractor(comment, stemming, rem_keyws))
     return words
 
 
-def jaccard(stemming=True, rem_keyws=True, lines=None):
+def jaccard(stemming=True, rem_keyws=True, lines=None, set='train'):
     if lines is None:
-        code = get_code_words(stemming, rem_keyws)
+        code = get_code_words(stemming, rem_keyws, set=set)
     else:
-        code = code = get_code_words(stemming, rem_keyws, lines)
-    comments = get_comment_words(stemming, rem_keyws)
+        code = get_code_words(stemming, rem_keyws, lines, set=set)
+    comments = get_comment_words(stemming, rem_keyws, set=set)
     score = []
     for i in range(len(comments)):
         score.append(get_jaccard_sim(code[i], comments[i]))
@@ -181,19 +182,22 @@ def get_jaccard_sim(first, second):
     return float(len(c)) / (len(a) + len(b) - len(c))
 
 
-def get_comment_length():
-    comments = get_comments()
-    return [len(comment) for comment in comments]
+def get_comment_length(set='train', rough='True'):
+    comments = get_comments(set=set)
+    if rough:
+        return [len(comment) for comment in comments]
+    else:
+        return [len(comment.split()) for comment in comments]
 
 
 def get_javadoc_tags():
     return get_tag_for_list(get_javadoc_comments())
 
 
-def get_links_tag():
+def get_links_tag(set='train'):
     has_link = True
 
-    tags = get_tag_for_comment()
+    tags = get_tag_for_comment(set)
     bool_vector = []
     for list_ in tags:
         found = False
@@ -207,19 +211,26 @@ def get_links_tag():
     return bool_vector
 
 
-def normalize(nparray):
-    return (nparray - nparray.mean(axis=0)) / nparray.std(axis=0)
-
-
-def get_type_encoded():
-    types = get_type()
+def get_type_encoded(set='train'):
+    types = get_type(set)
     le = LabelEncoder()
     return le.fit_transform(types)
 
 
+def get_no_sep(set='train'):
+    comments = get_comments(set)
+    return [count_sep(x) for x in comments]
+
+
+def count_sep(string):
+    matches = re.findall(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\.|/|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#|%', string)
+    return len(matches)
+
+
 if __name__ == '__main__':
-    print(get_mi_tfidf_best_features())
-    print(get_chi2_tfidf_best_features())
-    print(get_fclassif_tfidf_best_features())
+    #print(get_mi_tfidf_best_features())
+    #print(get_chi2_tfidf_best_features())
+    #print(get_fclassif_tfidf_best_features())
     #print(get_best_rfe_features(AdaBoostClassifier, feature_type='nontextual'))
-    print(get_best_sfs_features(forward=False, classifier=RandomForestClassifier, feature_type='nontextual', k=2))
+    #print(get_best_sfs_features(forward=True, classifier=RandomForestClassifier, feature_type='tfidf', k=(1,500)))
+    print([x for x in zip(get_no_sep(), get_comments())])

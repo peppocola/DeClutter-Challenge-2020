@@ -16,8 +16,14 @@ def save_heatmap(cm, name, folder):
     plt.clf()
 
 
-def plot_length():
-    comments = np.array([len(x) for x in get_comments()])
+def plot_length(rough=True):
+    if rough:
+        comments = np.array([len(x) for x in get_comments()])
+        out = 'length_distribution.png'
+    else:
+        comments = np.array([len(x.split()) for x in get_comments()])
+        out = 'length_distribution_split.png'
+
     labels = np.array(get_labels())
 
     sample_yes = []
@@ -34,9 +40,13 @@ def plot_length():
     plt.xlabel('comment length')
     plt.ylabel('number of comments')
     plt.legend(['no', 'yes'])
-    plt.text(1000, 80, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
-    plt.text(1000, 90, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
-    plt.savefig(img_outpath + 'length_distribution.png')
+    if rough:
+        plt.text(1000, 80, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
+        plt.text(1000, 90, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
+    else:
+        plt.text(150, 70, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
+        plt.text(150, 80, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
+    plt.savefig(img_outpath + out)
     plt.clf()
 
 
@@ -153,10 +163,10 @@ def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
 
 
 if __name__ == "__main__":
-    #plot_length()
+    plot_length(rough=False)
     #has_tags_analysis()
     #tags_analysis()
     #plot_jaccard(stemming=False, rem_kws=False)
-    jacc = jaccard()
-    plot_jaccard(stemming=False, rem_kws=False, jacc_score=jacc)
-    plot_jaccard(jacc_score=jacc)
+    #jacc = jaccard()
+    #plot_jaccard(stemming=False, rem_kws=False, jacc_score=jacc)
+    #plot_jaccard(jacc_score=jacc)
