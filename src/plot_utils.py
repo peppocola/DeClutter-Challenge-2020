@@ -4,7 +4,7 @@ import seaborn as sns
 from src.keys import non_information, information, img_outpath, reports_outpath
 from src.csv_utils import get_comments, get_labels, get_tags
 import re
-from src.features_utils import jaccard
+from src.features_utils import jaccard, get_no_sep
 
 
 def save_heatmap(cm, name, folder):
@@ -46,6 +46,33 @@ def plot_length(rough=True):
     else:
         plt.text(150, 70, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
         plt.text(150, 80, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
+    plt.savefig(img_outpath + out)
+    plt.clf()
+
+
+def plot_no_sep():
+    labels = np.array(get_labels())
+    no_sep = get_no_sep()
+    out = 'no_sep_distribution.png'
+
+    sample_yes = []
+    sample_no = []
+    for x in range(len(labels)):
+        if labels[x] == non_information:
+            sample_yes.append(no_sep[x])
+        else:
+            sample_no.append(no_sep[x])
+
+    plt.hist(sample_no, bins='auto', color='orange')
+    plt.hist(sample_yes, bins='auto', color='blue')
+
+    plt.ylim(0, 215)
+    plt.xlim(0, 65)
+    plt.xlabel('no_sep')
+    plt.ylabel('number of comments')
+    plt.legend(['no', 'yes'])
+    plt.text(40, 140, 'yes avg sep= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
+    plt.text(40, 150, 'no avg sep=' + str(round(sum(sample_no) / len(sample_no), 2)))
     plt.savefig(img_outpath + out)
     plt.clf()
 
@@ -163,7 +190,8 @@ def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
 
 
 if __name__ == "__main__":
-    plot_length(rough=False)
+    plot_no_sep()
+    #plot_length(rough=False)
     #has_tags_analysis()
     #tags_analysis()
     #plot_jaccard(stemming=False, rem_kws=False)

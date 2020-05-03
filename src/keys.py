@@ -1,15 +1,19 @@
 non_information = 1
 information = 0
-train_path = '../devset/declutter-gold_DevelopmentSet.csv'
+full_train_path = '../devset/declutter-gold_DevelopmentSet.csv'
+split_train_path = '../devset/train_set_20200319.csv'
+new_train_path = '../devset/new_train.csv'
+new_test_path = '../devset/new_test.csv'
 test_path = '../devset/test_set_20200319.csv'
 reports_outpath = '../reports/'
 scores_outpath = '../reports/scores/'
 img_outpath = '../img/'
-features_outpath = '../features'
+features_outpath = '../features/'
 csv_ex = '.csv'
 java_keywords = '../java/keywords.txt'
 java_tags = '../java/tags.txt'
 javadoc = 'Javadoc'
 line = 'Line'
 block = 'Block'
+latex_tables_out = '../latex/'
 

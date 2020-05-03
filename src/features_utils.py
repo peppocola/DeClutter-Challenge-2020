@@ -1,17 +1,61 @@
 import re
 
+from scipy import sparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
 from sklearn.pipeline import Pipeline
 from mlxtend.feature_selection import SequentialFeatureSelector as sfs
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, normalize, scale
 
 from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type, write_csv
 from src.code_parser import get_code_words, word_extractor, tokenizer, get_lines, get_positions_encoded
 from src.keys import reports_outpath
 
 import numpy as np
+
+
+def get_features(set='train', stemming=True, rem_kws=True, scaled=True, lines=None):
+    if lines is None:
+        lines = get_lines(set=set)
+    jacc_score = np.array(jaccard(stemming, rem_kws, lines=lines, set=set))
+    positions = np.array(get_positions_encoded(lines=lines, set=set))
+    rough_length = np.array([x for x in get_comment_length(rough=True, set=set)])
+    length = np.array([x for x in get_comment_length(rough=False, set=set)])
+    types = np.array(get_type_encoded(set=set))
+    link_tag = np.array(get_links_tag(set=set))
+
+    if scaled:
+        features = scale(rough_length.reshape((rough_length.shape[0], 1)))
+        features = scale(np.hstack((features, length.reshape((length.shape[0], 1)))))
+        features = scale(np.hstack((features, jacc_score.reshape((jacc_score.shape[0], 1)))))
+        features = scale(np.hstack((features, types.reshape((types.shape[0], 1)))))
+        features = scale(np.hstack((features, positions.reshape((positions.shape[0], 1)))))
+        features = scale(np.hstack((features, link_tag.reshape((link_tag.shape[0], 1)))))
+    else:
+        features = rough_length.reshape((rough_length.shape[0], 1))
+        features = np.hstack((features, length.reshape((length.shape[0], 1))))
+        features = np.hstack((features, jacc_score.reshape((jacc_score.shape[0], 1))))
+        features = np.hstack((features, types.reshape((types.shape[0], 1))))
+        features = np.hstack((features, positions.reshape((positions.shape[0], 1))))
+        features = np.hstack((features, link_tag.reshape((link_tag.shape[0], 1))))
+
+    return features
+
+
+def get_tfidf_features(set='train', normalized=True):
+    comments = get_comments(set=set)
+    tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False, sublinear_tf=True)
+    dt_matrix = tfidf_vector.fit_transform(comments)
+    if normalized:
+        dt_matrix = normalize(dt_matrix, norm='l1', axis=0)
+    return dt_matrix
+
+
+def get_both_features(set='train', scaled=True, normalized=True, stemming=True, rem_kws=True, lines=None):
+    dt_matrix = get_tfidf_features(set=set, normalized=normalized)
+    features = get_features(set=set, scaled=scaled, stemming=stemming, rem_kws=rem_kws, lines=lines)
+    return sparse.hstack((dt_matrix, features))
 
 
 def do_feature_selection(method, classifier, feature_type='tfidf'):
@@ -21,7 +65,7 @@ def do_feature_selection(method, classifier, feature_type='tfidf'):
     pipeline = Pipeline(
         [('feature_selection', method), ('clf', clf)])
     if feature_type == 'tfidf':
-        features, feature_names = get_tfidf_features()
+        features, feature_names = get_tfidf_feature_names()
         pipeline.fit(features, y)
     elif feature_type == 'nontextual':
         features, feature_names = get_nontextual_features()
@@ -86,21 +130,21 @@ def get_mi_best_features():
 
 
 def get_mi_tfidf_best_features(k=20):
-    features, feature_names = get_tfidf_features()
+    features, feature_names = get_tfidf_feature_names()
     return get_best_features(scoring=mutual_info_classif, features=features, feature_names=feature_names, k=k, csv=True)
 
 
 def get_chi2_tfidf_best_features(k=20):
-    features, feature_names = get_tfidf_features()
+    features, feature_names = get_tfidf_feature_names()
     return get_best_features(scoring=chi2, features=features, feature_names=feature_names, k=k, csv=True)
 
 
 def get_fclassif_tfidf_best_features(k=20):
-    features, feature_names = get_tfidf_features()
+    features, feature_names = get_tfidf_feature_names()
     return get_best_features(scoring=f_classif, features=features, feature_names=feature_names, k=k, csv=True)
 
 
-def get_tfidf_features():
+def get_tfidf_feature_names():
     vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
     features = vectorizer.fit_transform(get_comments())
     feature_names = vectorizer.get_feature_names()
@@ -182,7 +226,7 @@ def get_jaccard_sim(first, second):
     return float(len(c)) / (len(a) + len(b) - len(c))
 
 
-def get_comment_length(set='train', rough='True'):
+def get_comment_length(set='train', rough=True):
     comments = get_comments(set=set)
     if rough:
         return [len(comment) for comment in comments]
@@ -197,7 +241,7 @@ def get_javadoc_tags():
 def get_links_tag(set='train'):
     has_link = True
 
-    tags = get_tag_for_comment(set)
+    tags = get_tag_for_comment(set=set)
     bool_vector = []
     for list_ in tags:
         found = False
@@ -212,13 +256,13 @@ def get_links_tag(set='train'):
 
 
 def get_type_encoded(set='train'):
-    types = get_type(set)
+    types = get_type(set=set)
     le = LabelEncoder()
     return le.fit_transform(types)
 
 
 def get_no_sep(set='train'):
-    comments = get_comments(set)
+    comments = get_comments(set=set)
     return [count_sep(x) for x in comments]
 
 
@@ -228,9 +272,9 @@ def count_sep(string):
 
 
 if __name__ == '__main__':
-    #print(get_mi_tfidf_best_features())
-    #print(get_chi2_tfidf_best_features())
-    #print(get_fclassif_tfidf_best_features())
-    #print(get_best_rfe_features(AdaBoostClassifier, feature_type='nontextual'))
-    #print(get_best_sfs_features(forward=True, classifier=RandomForestClassifier, feature_type='tfidf', k=(1,500)))
+    # print(get_mi_tfidf_best_features())
+    # print(get_chi2_tfidf_best_features())
+    # print(get_fclassif_tfidf_best_features())
+    # print(get_best_rfe_features(AdaBoostClassifier, feature_type='nontextual'))
+    # print(get_best_sfs_features(forward=True, classifier=RandomForestClassifier, feature_type='tfidf', k=(1,500)))
     print([x for x in zip(get_no_sep(), get_comments())])

@@ -81,7 +81,7 @@ def get_positions(lines=None, set='train'):
 
 def get_positions_encoded(lines=None, set='train'):
     if lines is None:
-        positions = get_positions()
+        positions = get_positions(set=set)
     else:
         positions = get_positions(lines, set=set)
     le = LabelEncoder()
@@ -96,7 +96,7 @@ def get_lines(serialized=True, serialize=False, set='train'):
     text_link = 1
     comment_line = 2
 
-    data = get_link_line_type()
+    data = get_link_line_type(set=set)
     lines = []
     for row in data:
         code = get_text_by_url(row[text_link])
@@ -110,7 +110,7 @@ def get_lines(serialized=True, serialize=False, set='train'):
 
 def get_code_words(stemming=True, rem_keyws=True, lines=None, set='train'):
     if lines is None:
-        lines = get_lines(set=set)
+        lines = get_lines(set=set, serialized=False, serialize=True)
     words = []
     for line in lines:
         words.append(word_extractor(line, stemming, rem_keyws))

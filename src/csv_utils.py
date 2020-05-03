@@ -1,8 +1,11 @@
 from pandas import read_csv, DataFrame
-import numpy as np
 import csv
-from src.keys import non_information, information, train_path, reports_outpath, scores_outpath, \
-    csv_ex, java_tags, java_keywords, javadoc, features_outpath, test_path
+
+from sklearn.model_selection import train_test_split
+
+from src.keys import non_information, information, full_train_path, reports_outpath, scores_outpath, \
+    csv_ex, java_tags, java_keywords, javadoc, features_outpath, test_path, latex_tables_out, split_train_path, \
+    new_train_path, new_test_path
 
 
 def write_counter(counter):
@@ -17,8 +20,7 @@ def write_counter(counter):
 
 
 def write_stats(stats, folder):
-    name_full = scores_outpath + folder + "/full_stats" + csv_ex
-    name_short = scores_outpath + folder + "/short_stats" + csv_ex
+    name_full = scores_outpath + folder + "/stats" + csv_ex
 
     rows = []
     header = []
@@ -34,11 +36,26 @@ def write_stats(stats, folder):
         for row in rows:
             writer.writerow(row)
 
+    #write_latex_tables(name_full, latex_tables_out, folder)
+
+
+def write_latex_tables(name_full, latex_tables_out, folder):
+    name_latex_class = latex_tables_out + "/table_yes_no_" + folder + csv_ex
+    name_latex_short = latex_tables_out + "/table_short_" + folder + csv_ex
+
     f = read_csv(name_full)
-    keep_col = ['classifier', 'precision_no', 'recall_no', 'f1-score_no', 'precision_yes', 'recall_yes', 'f1-score_yes',
-                'accuracy', 'precision_macro avg', 'recall_macro avg', 'f1-score_macro avg', 'matthews_corrcoef']
-    new_f = f[keep_col]
-    new_f.to_csv(name_short, index=False)
+
+    latex_class_cols = ['classifier', 'precision_no', 'recall_no', 'f1_no', 'precision_yes', 'recall_yes',
+                        'f1_yes']
+
+    latex_class = f[latex_class_cols]
+    latex_class.to_csv(name_latex_class, index=False)
+
+    latex_short_cols = ['classifier', 'accuracy', 'precision_macro', 'recall_macro', 'f1_macro',
+                        'matthews_corrcoef']
+
+    latex_short = f[latex_short_cols]
+    latex_short.to_csv(name_latex_short, index=False)
 
 
 def write_classifier_stats(stats, key, folder):
@@ -75,7 +92,7 @@ def write_csv(col_names, data, filename):
 
 
 def csv_counter():
-    lines = read_csv(train_path,
+    lines = read_csv(full_train_path,
                      sep=",", usecols=['type', 'non-information'])
     counter = {'Javadoc': [0, 0], 'Line': [0, 0], 'Block': [0, 0]}
 
@@ -88,37 +105,26 @@ def csv_counter():
 
 
 def get_comments(set='train'):
-    if set == 'train':
-        lines = read_csv(train_path,
-                         sep=",", usecols=['comment'])
-        return lines.comment.fillna(' ').tolist()
-    if set == 'test':
-        lines = read_csv(test_path,
-                         sep=",", usecols=['comment'])
-        return lines.comment.fillna(' ').tolist()
-    raise ValueError
+    path = get_path(set)
+    lines = read_csv(path, sep=",", usecols=['comment'])
+    return lines.comment.fillna(' ').tolist()
 
 
 def get_type(set='train'):
-    if set == 'train':
-        lines = read_csv(train_path,
-                         sep=",", usecols=['type'])
-        return lines.type.fillna(' ').tolist()
-    if set == 'test':
-        lines = read_csv(test_path,
-                         sep=",", usecols=['type'])
-        return lines.type.fillna(' ').tolist()
-    raise ValueError
+    path = get_path(set)
+    lines = read_csv(path, sep=",", usecols=['type'])
+    return lines.type.fillna(' ').tolist()
 
 
-def get_labels():
-    lines = read_csv(train_path,
-                     sep=",", usecols=['non-information'])
+def get_labels(set='train'):
+    path = get_path(set)
+
+    lines = read_csv(path, sep=",", usecols=['non-information'])
     return [information if x == 'no' else non_information for x in lines['non-information'].tolist()]
 
 
 def get_links():
-    lines = read_csv(train_path,
+    lines = read_csv(full_train_path,
                      sep=",", usecols=['path_to_file'])
     return lines['path_to_file'].tolist()
 
@@ -134,15 +140,9 @@ def get_keywords():
 
 
 def get_link_line_type(set='train'):
-    if set == 'train':
-        lines = read_csv(train_path,
-                         sep=",", usecols=['type', 'path_to_file', 'begin_line'])
-        return lines.values.tolist()
-    if set == 'test':
-        lines = read_csv(test_path,
-                         sep=",", usecols=['type', 'path_to_file', 'begin_line'])
-        return lines.values.tolist()
-    raise ValueError
+    path = get_path(set)
+    lines = read_csv(path, sep=",", usecols=['type', 'path_to_file', 'begin_line'])
+    return lines.values.tolist()
 
 
 def get_javadoc_comments():
@@ -168,9 +168,35 @@ def write_results(results):
     out.to_csv('../devset/out.csv', index=False)
 
 
+def get_path(set_name='train'):
+    if set_name == 'train':
+       path = full_train_path
+    elif set_name == 'test':
+        path = test_path
+    elif set_name == 'split_train':
+        path = split_train_path
+    elif set_name == 'new_train':
+        path = new_train_path
+    elif set_name == 'new_test':
+        path = new_test_path
+    else:
+        raise ValueError
+    return path
+
+
+def data_split():
+    df = read_csv(full_train_path, sep=",")
+    split = train_test_split(df, shuffle=True, test_size=0.1, train_size=0.9)
+    train = split[0]
+    test = split[1]
+    train.to_csv(new_train_path, index=False)
+    test.to_csv(new_test_path, index=False)
+    return new_train_path, new_test_path
+
 if __name__ == "__main__":
-    write_counter(csv_counter())
-    print(get_labels())
-    print(get_comments())
-    print(get_links())
-    print(get_link_line_type())
+    data_split()
+    #write_counter(csv_counter())
+    #print(get_labels())
+    #print(get_comments())
+    #print(get_links())
+    #print(get_link_line_type())
