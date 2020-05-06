@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -12,6 +14,10 @@ def save_heatmap(cm, name, folder):
                 yticklabels=["no", "yes"])
     plt.text(-0.25, 1.15, 'predicted', rotation=90)
     plt.text(0.8, 2.2, 'actual')
+
+    if not os.path.exists(img_outpath + folder):
+        os.makedirs(img_outpath + folder)
+
     plt.savefig(img_outpath + folder + '/heatmap_' + name)
     plt.clf()
 

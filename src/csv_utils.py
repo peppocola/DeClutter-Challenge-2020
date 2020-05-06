@@ -1,10 +1,12 @@
+import os
+
 from pandas import read_csv, DataFrame
 import csv
 
 from sklearn.model_selection import train_test_split
 
 from src.keys import non_information, information, full_train_path, reports_outpath, scores_outpath, \
-    csv_ex, java_tags, java_keywords, javadoc, features_outpath, test_path, latex_tables_out, split_train_path, \
+    csv_ex, java_tags, java_keywords, javadoc, features_outpath, split_test_path, latex_tables_out, split_train_path, \
     new_train_path, new_test_path
 
 
@@ -22,6 +24,9 @@ def write_counter(counter):
 def write_stats(stats, folder):
     name_full = scores_outpath + folder + "/stats" + csv_ex
 
+    if not os.path.exists(scores_outpath + folder):
+        os.makedirs(scores_outpath + folder)
+
     rows = []
     header = []
     for key in stats:
@@ -36,12 +41,15 @@ def write_stats(stats, folder):
         for row in rows:
             writer.writerow(row)
 
-    #write_latex_tables(name_full, latex_tables_out, folder)
+    write_latex_tables(name_full, latex_tables_out, folder)
 
 
 def write_latex_tables(name_full, latex_tables_out, folder):
-    name_latex_class = latex_tables_out + "/table_yes_no_" + folder + csv_ex
-    name_latex_short = latex_tables_out + "/table_short_" + folder + csv_ex
+    name_latex_class = latex_tables_out + folder + "/table_yes_no" + csv_ex
+    name_latex_short = latex_tables_out + folder + "/table_short_" + csv_ex
+
+    if not os.path.exists(latex_tables_out + folder):
+        os.makedirs(latex_tables_out + folder)
 
     f = read_csv(name_full)
 
@@ -158,7 +166,7 @@ def get_javadoc_comments():
 
 
 def write_results(results):
-    df = read_csv(test_path, sep=",",
+    df = read_csv(split_test_path, sep=",",
                   usecols=['ID'])
     ids = df.ID.fillna(' ').tolist()
     non_information_col = [0 if x == 0 else 1 for x in results]
@@ -170,9 +178,9 @@ def write_results(results):
 
 def get_path(set_name='train'):
     if set_name == 'train':
-       path = full_train_path
-    elif set_name == 'test':
-        path = test_path
+        path = full_train_path
+    elif set_name == 'split_test':
+        path = split_test_path
     elif set_name == 'split_train':
         path = split_train_path
     elif set_name == 'new_train':
@@ -193,10 +201,30 @@ def data_split():
     test.to_csv(new_test_path, index=False)
     return new_train_path, new_test_path
 
+
+def fill_test_set_labels():
+    to_fill = read_csv(split_test_path, sep=",")
+    link_labels = get_link_label_dict()
+    for index, row in to_fill.iterrows():
+        to_fill['non-information'][index] = link_labels[to_fill['link_to_comment'][index]]
+    to_fill.to_csv(split_test_path, index=False)
+
+
+def get_link_label_dict():
+    link_label = read_csv(full_train_path, sep=",", usecols=['link_to_comment', 'non-information'])
+    link_label = link_label.values.tolist()
+    link_label_dict = {}
+    for entry in link_label:
+        link_label_dict[entry[0]] = entry[1]
+    return link_label_dict
+
+
 if __name__ == "__main__":
     data_split()
-    #write_counter(csv_counter())
-    #print(get_labels())
-    #print(get_comments())
-    #print(get_links())
+    # write_counter(csv_counter())
+    # print(get_labels())
+    # print(get_comments())
+    # print(get_links())
     #print(get_link_line_type())
+    #print(get_link_label_dict())
+    fill_test_set_labels()
