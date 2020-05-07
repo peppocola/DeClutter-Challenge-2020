@@ -69,12 +69,12 @@ def get_positions(lines=None, set='train'):
         lines = get_lines(set=set)
     i = 0
     for row in data:
-        print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
+        #print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
         focus_line = lines[i]
-        print(focus_line)
+        #print(focus_line)
         p = get_position(focus_line)
         positions.append(p)
-        print(p)
+        #print(p)
         i += 1
     return positions
 
