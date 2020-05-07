@@ -30,46 +30,37 @@ tf_idf_classifiers = [DummyClassifier, BernoulliNB, ComplementNB, MultinomialNB,
                       RandomForestClassifier, AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier,
                       GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
 
-tf_idf_voting = [RandomForestClassifier, BernoulliNB, MLPClassifier, ExtraTreesClassifier, AdaBoostClassifier]
-
 feat_classifiers = [BernoulliNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
                     AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
                     LogisticRegression, DecisionTreeClassifier, SGDClassifier]
 
-feat_voting = [RandomForestClassifier, GradientBoostingClassifier, MLPClassifier, ExtraTreesClassifier,
-               AdaBoostClassifier]
-
-both_voting = [AdaBoostClassifier, RandomForestClassifier, GradientBoostingClassifier, BaggingClassifier, SGDClassifier]
-
 
 def tf_idf_classify(set='train', folder="tfidf-classifiers"):
     classifiers = tf_idf_classifiers
-    voting = tf_idf_voting
+
     labels = get_labels(set=set)
 
     features = get_tfidf_features(set=set, normalized=False)
 
-    return do_kfold(classifiers, voting, labels, features, folder)
+    return do_kfold(classifiers, labels, features, folder)
 
 
 def feat_classify(set='train', folder="features-classifiers", stemming=True, rem_kws=True, lines=None):
     classifiers = feat_classifiers
-    voting = feat_voting
 
     features = get_features(set=set, stemming=stemming, rem_kws=rem_kws, scaled=True, lines=lines)
     labels = get_labels(set=set)
 
-    return do_kfold(classifiers, voting, labels, features, folder)
+    return do_kfold(classifiers, labels, features, folder)
 
 
 def both_classify(set='train', folder="both-classifiers", stemming=True, rem_kws=True, lines=None):
     classifiers = feat_classifiers
-    voting = both_voting
 
     features = get_both_features(set=set, stemming=stemming, rem_kws=rem_kws, lines=lines)
     labels = get_labels(set=set)
 
-    return do_kfold(classifiers, voting, labels, features, folder)
+    return do_kfold(classifiers, labels, features, folder)
 
 
 def final_classify(stemming=True, rem_kws=True):
@@ -114,7 +105,7 @@ def final_classify(stemming=True, rem_kws=True):
 
 
 def classify_split(folder="split_classifier"):
-    #data_split()
+    # data_split()
 
     train_set = 'split_train'
     test_set = 'split_test'
@@ -130,18 +121,19 @@ def classify_split(folder="split_classifier"):
     # dt_matrix_test = normalize(dt_matrix_test, norm='l1', axis=0)
 
     tf_idf_classify(set=train_set, folder=folder + "/tf_idf_classifier/")
-    train_n_test(tf_idf_classifiers, tf_idf_voting, dt_matrix_train, get_labels(set=train_set), dt_matrix_test, get_labels(set=test_set), folder=folder + "/tf_idf_classifier_tet/")
+    train_n_test(tf_idf_classifiers, dt_matrix_train, get_labels(set=train_set), dt_matrix_test,
+                 get_labels(set=test_set), folder=folder + "/tf_idf_classifier_tet/")
 
     # FEATURES
-    lines_train = get_lines(serialized=False, serialize=True, set=train_set)
+    lines_train = get_lines(serialized=True, set=train_set)
 
     feat_classify(set=train_set, folder=folder + "/feat_classifier/", lines=lines_train)
 
     features_train = get_features(set=train_set, scaled=True, lines=lines_train)
-    lines_test = get_lines(serialized=False, serialize=True, set=test_set)
+    lines_test = get_lines(serialized=True, set=test_set)
     features_test = get_features(set=test_set, scaled=True, lines=lines_test)
 
-    train_n_test(feat_classifiers, feat_voting, features_train, get_labels(set=train_set), features_test,
+    train_n_test(feat_classifiers, features_train, get_labels(set=train_set), features_test,
                  get_labels(set=test_set), folder=folder + "/feat_classifier_tet/")
 
     # BOTH_CLASSIFIERS
@@ -150,43 +142,46 @@ def classify_split(folder="split_classifier"):
     both_train = sparse.hstack((dt_matrix_train, features_train))
     both_test = sparse.hstack((dt_matrix_test, features_test))
 
-    train_n_test(feat_classifiers, both_voting, both_train, get_labels(set=train_set), both_test,
+    train_n_test(feat_classifiers, both_train, get_labels(set=train_set), both_test,
                  get_labels(set=test_set), folder=folder + "/both_classifier_tet/")
 
 
-def do_kfold(classifiers, voting, labels, features, folder):
+def do_kfold(classifiers, labels, features, folder):
     stats = {}
-    list_results = []
-    for i in classifiers:
-        if i is DummyClassifier:
-            classifier = i(strategy='most_frequent')
+    list_results = {}
+    for classifier in classifiers:
+        if classifier is DummyClassifier:
+            classifier_initialized = classifier(strategy='most_frequent')
         else:
-            classifier = i()
-        predictions = cross_val_predict(classifier, features, labels,
+            classifier_initialized = classifier()
+        predictions = cross_val_predict(classifier_initialized, features, labels,
                                         cv=KFold(n_splits=10, shuffle=True, random_state=seed))
 
-        scores = cross_validate(estimator=classifier, scoring=scorers, X=features, y=labels,
+        scores = cross_validate(estimator=classifier_initialized, scoring=scorers, X=features, y=labels,
                                 cv=KFold(n_splits=10, shuffle=True, random_state=seed))
-        if i in voting:
-            list_results.append(predictions)
-        cm = confusion_matrix(predictions, labels, [information, non_information])
-        save_heatmap(cm, i.__name__, folder)
 
-        print(i.__name__)
+        list_results[classifier.__name__] = predictions
+
+        cm = confusion_matrix(predictions, labels, [information, non_information])
+        save_heatmap(cm, classifier.__name__, folder)
+
+        print(classifier.__name__)
         # convert cross_validate report to a usable dict
         report = {}
         for name in scorers.keys():
             key = 'test_' + name
             report[name] = np.mean(scores[key])
-        stats[i.__name__] = report
+        stats[classifier.__name__] = report
         print(report)
-        stats[i.__name__] = report
+        stats[classifier.__name__] = report
 
     voting_results = []
-    for i in range(len(labels)):
+    voting = voting_selection(stats)
+    print("Voting=", voting)
+    for classifier in range(len(labels)):
         vote = 0
-        for j in range(len(voting)):
-            vote += list_results[j][i]
+        for j in voting:
+            vote += list_results[j][classifier]
         if vote > (len(voting) / 2):
             voting_results.append(non_information)
         else:
@@ -201,29 +196,32 @@ def do_kfold(classifiers, voting, labels, features, folder):
     return stats
 
 
-def train_n_test(classifiers, voting, features_train, labels_train, features_test, labels_test, folder):
-    list_results = []
+def train_n_test(classifiers, features_train, labels_train, features_test, labels_test, folder):
+    list_results = {}
     stats = {}
 
     for classifier in classifiers:
-        c = classifier()
-        c.fit(X=features_train, y=labels_train)
-        result = c.predict(features_test)
+        classifier_initialized = classifier()
+        classifier_initialized.fit(X=features_train, y=labels_train)
+        result = classifier_initialized.predict(features_test)
 
         cm = confusion_matrix(result, labels_test, [information, non_information])
         save_heatmap(cm, classifier.__name__, folder)
 
-        if classifier in voting:
-            list_results.append(result)
+        list_results[classifier.__name__] = result
+
         score = compute_metrics(labels_test, result)
         stats[classifier.__name__] = score
         print(classifier.__name__)
         print(score)
 
     voting_results = []
+    voting = voting_selection(stats)
+    print("Voting=", voting)
+
     for i in range(len(labels_test)):
         vote = 0
-        for j in range(len(voting)):
+        for j in voting:
             vote += list_results[j][i]
         if vote > (len(voting) / 2):
             voting_results.append(non_information)
@@ -239,15 +237,38 @@ def train_n_test(classifiers, voting, features_train, labels_train, features_tes
     return voting_results
 
 
+def voting_selection(stats, criteria='f1_yes', n=5):
+    classifiers = []
+    f1_yes = []
+    keys = list(stats.keys())
+    for key in keys:
+        f1_yes.append(stats[key][criteria])
+    index = np.argpartition(f1_yes, -n)[-n:]
+
+    for i in index:
+        classifiers.append(keys[i])
+    return classifiers
+
+
+def map_classifiers(classifiers):
+    new_classifiers = []
+    for classifier_name in classifiers:
+        for classifier in tf_idf_classifiers:
+            if classifier == classifier_name:
+                new_classifiers.append(classifier)
+                break
+    return new_classifiers
+
+
 if __name__ == "__main__":
     start_time = time.time()
     classify_split()
     # write_results(final_classify())
-    #tf_idf_classify()
-    #print("getting relevant lines")
-    #lines = get_lines(serialized=True)
-    #print("features\n")
-    #feat_classify(lines=lines)
-    #print("both\n")
-    #both_classify(lines=lines)
-    #print("--- %s seconds ---" % (time.time() - start_time))
+    # tf_idf_classify()
+    # print("getting relevant lines")
+    # lines = get_lines(serialized=True)
+    # print("features\n")
+    # feat_classify(lines=lines)
+    # print("both\n")
+    # both_classify(lines=lines)
+    # print("--- %s seconds ---" % (time.time() - start_time))
