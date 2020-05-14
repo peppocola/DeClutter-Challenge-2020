@@ -10,8 +10,10 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Bagging
     GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict, KFold, cross_validate
 from sklearn.tree import DecisionTreeClassifier
+
+from src.classifiers import get_feat_classifiers, get_tf_idf_classifiers
 from src.code_parser import tokenizer, get_lines
-from src.csv_utils import get_comments, get_labels, write_stats, data_split
+from src.csv_utils import get_comments, get_labels, write_stats, write_results
 from src.keys import non_information, information
 from src.metrics import scorers, compute_metrics
 from src.plot_utils import save_heatmap
@@ -26,17 +28,9 @@ seed = randrange(100)
 seed = 49
 print("seed =", seed)
 
-tf_idf_classifiers = [DummyClassifier, BernoulliNB, ComplementNB, MultinomialNB, LinearSVC, SVC, MLPClassifier,
-                      RandomForestClassifier, AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier,
-                      GradientBoostingClassifier, LogisticRegression, DecisionTreeClassifier, SGDClassifier]
-
-feat_classifiers = [BernoulliNB, LinearSVC, SVC, MLPClassifier, RandomForestClassifier,
-                    AdaBoostClassifier, BaggingClassifier, ExtraTreesClassifier, GradientBoostingClassifier,
-                    LogisticRegression, DecisionTreeClassifier, SGDClassifier]
-
 
 def tf_idf_classify(set='train', folder="tfidf-classifiers"):
-    classifiers = tf_idf_classifiers
+    classifiers = get_tf_idf_classifiers()
 
     labels = get_labels(set=set)
 
@@ -46,7 +40,7 @@ def tf_idf_classify(set='train', folder="tfidf-classifiers"):
 
 
 def feat_classify(set='train', folder="features-classifiers", stemming=True, rem_kws=True, lines=None):
-    classifiers = feat_classifiers
+    classifiers = get_feat_classifiers()
 
     features = get_features(set=set, stemming=stemming, rem_kws=rem_kws, scaled=True, lines=lines)
     labels = get_labels(set=set)
@@ -55,7 +49,7 @@ def feat_classify(set='train', folder="features-classifiers", stemming=True, rem
 
 
 def both_classify(set='train', folder="both-classifiers", stemming=True, rem_kws=True, lines=None):
-    classifiers = feat_classifiers
+    classifiers = get_feat_classifiers()
 
     features = get_both_features(set=set, stemming=stemming, rem_kws=rem_kws, lines=lines)
     labels = get_labels(set=set)
@@ -121,7 +115,7 @@ def classify_split(folder="split_classifier"):
     # dt_matrix_test = normalize(dt_matrix_test, norm='l1', axis=0)
 
     tf_idf_classify(set=train_set, folder=folder + "/tf_idf_classifier/")
-    train_n_test(tf_idf_classifiers, dt_matrix_train, get_labels(set=train_set), dt_matrix_test,
+    train_n_test(get_tf_idf_classifiers(), dt_matrix_train, get_labels(set=train_set), dt_matrix_test,
                  get_labels(set=test_set), folder=folder + "/tf_idf_classifier_tet/")
 
     # FEATURES
@@ -133,7 +127,7 @@ def classify_split(folder="split_classifier"):
     lines_test = get_lines(serialized=True, set=test_set)
     features_test = get_features(set=test_set, scaled=True, lines=lines_test)
 
-    train_n_test(feat_classifiers, features_train, get_labels(set=train_set), features_test,
+    train_n_test(get_feat_classifiers(), features_train, get_labels(set=train_set), features_test,
                  get_labels(set=test_set), folder=folder + "/feat_classifier_tet/")
 
     # BOTH_CLASSIFIERS
@@ -142,99 +136,75 @@ def classify_split(folder="split_classifier"):
     both_train = sparse.hstack((dt_matrix_train, features_train))
     both_test = sparse.hstack((dt_matrix_test, features_test))
 
-    train_n_test(feat_classifiers, both_train, get_labels(set=train_set), both_test,
+    train_n_test(get_feat_classifiers(), both_train, get_labels(set=train_set), both_test,
                  get_labels(set=test_set), folder=folder + "/both_classifier_tet/")
 
 
 def do_kfold(classifiers, labels, features, folder):
+    probas = {} #save proba for every classifier
+    preds = {} #save predictions for every classifier
     stats = {}
-    list_results = {}
-    for classifier in classifiers:
-        if classifier is DummyClassifier:
-            classifier_initialized = classifier(strategy='most_frequent')
-        else:
-            classifier_initialized = classifier()
-        predictions = cross_val_predict(classifier_initialized, features, labels,
-                                        cv=KFold(n_splits=10, shuffle=True, random_state=seed))
 
-        scores = cross_validate(estimator=classifier_initialized, scoring=scorers, X=features, y=labels,
+    for classifier in classifiers:
+        clf = classifier.classifier
+        result = cross_val_predict(clf, features, labels,
+                                        cv=KFold(n_splits=10, shuffle=True, random_state=seed), method='predict_proba')
+        predictions = get_predictions_by_proba(result)
+        scores = cross_validate(estimator=clf, scoring=scorers, X=features, y=labels,
                                 cv=KFold(n_splits=10, shuffle=True, random_state=seed))
 
-        list_results[classifier.__name__] = predictions
+        probas[classifier.name] = get_list_proba(result)
+        preds[classifier.name] = predictions
 
         cm = confusion_matrix(predictions, labels, [information, non_information])
-        save_heatmap(cm, classifier.__name__, folder)
+        save_heatmap(cm, classifier.name, folder)
 
-        print(classifier.__name__)
+        print(classifier.name)
         # convert cross_validate report to a usable dict
         report = {}
         for name in scorers.keys():
             key = 'test_' + name
             report[name] = np.mean(scores[key])
-        stats[classifier.__name__] = report
+        stats[classifier.name] = report
         print(report)
-        stats[classifier.__name__] = report
+        stats[classifier.name] = report
 
-    voting_results = []
-    voting = voting_selection(stats)
-    print("Voting=", voting)
-    for classifier in range(len(labels)):
-        vote = 0
-        for j in voting:
-            vote += list_results[j][classifier]
-        if vote > (len(voting) / 2):
-            voting_results.append(non_information)
-        else:
-            voting_results.append(information)
-
-    voting_report = compute_metrics(labels, voting_results)
-
-    cm = confusion_matrix(voting_results, labels, [information, non_information])
-    save_heatmap(cm, "Voting", folder)
-    stats["Voting"] = voting_report
+    voting_reportW, voting_resultsW = compute_voting(stats, probas, labels, folder, 'VotingW')
+    voting_reportN, voting_resultsN = compute_voting(stats, preds, labels, folder, 'VotingN')
+    stats["VotingW"] = voting_reportW
+    stats["VotingN"] = voting_reportN
     write_stats(stats, folder)
     return stats
 
 
 def train_n_test(classifiers, features_train, labels_train, features_test, labels_test, folder):
-    list_results = {}
+    probas = {} #save proba for every classifier
+    preds = {} #save predictions for every classifier
     stats = {}
 
     for classifier in classifiers:
-        classifier_initialized = classifier()
-        classifier_initialized.fit(X=features_train, y=labels_train)
-        result = classifier_initialized.predict(features_test)
+        clf = classifier.classifier
+        clf.fit(X=features_train, y=labels_train)
+        result = clf.predict_proba(features_test)
+        predictions = get_predictions_by_proba(result, clf.classes_)
+        cm = confusion_matrix(predictions, labels_test, [information, non_information])
+        save_heatmap(cm, classifier.name, folder)
 
-        cm = confusion_matrix(result, labels_test, [information, non_information])
-        save_heatmap(cm, classifier.__name__, folder)
+        probas[classifier.name] = get_list_proba(result)
+        preds[classifier.name] = predictions
 
-        list_results[classifier.__name__] = result
-
-        score = compute_metrics(labels_test, result)
-        stats[classifier.__name__] = score
-        print(classifier.__name__)
+        score = compute_metrics(labels_test, predictions)
+        stats[classifier.name] = score
+        print(classifier.name)
         print(score)
 
-    voting_results = []
-    voting = voting_selection(stats)
-    print("Voting=", voting)
-
-    for i in range(len(labels_test)):
-        vote = 0
-        for j in voting:
-            vote += list_results[j][i]
-        if vote > (len(voting) / 2):
-            voting_results.append(non_information)
-        else:
-            voting_results.append(information)
-
-    voting_report = compute_metrics(labels_test, voting_results)
-    cm = confusion_matrix(voting_results, labels_test, [information, non_information])
-    save_heatmap(cm, "Voting", folder)
-    stats["Voting"] = voting_report
+    voting_reportW, voting_resultsW = compute_voting(stats, probas, labels_test, folder, 'VotingW')
+    voting_reportN, voting_resultsN = compute_voting(stats, probas, labels_test, folder, 'VotingN')
+    stats["VotingW"] = voting_reportW
+    stats["VotingN"] = voting_reportN
     write_stats(stats, folder)
 
-    return voting_results
+    return stats
 
 
 def voting_selection(stats, criteria='f1_yes', n=5):
@@ -250,25 +220,56 @@ def voting_selection(stats, criteria='f1_yes', n=5):
     return classifiers
 
 
-def map_classifiers(classifiers):
-    new_classifiers = []
-    for classifier_name in classifiers:
-        for classifier in tf_idf_classifiers:
-            if classifier == classifier_name:
-                new_classifiers.append(classifier)
-                break
-    return new_classifiers
+def get_predictions_by_proba(probabilities, classes=None):
+    if classes is None:
+        classes = [0, 1]
+    prediction = []
+    for probability in probabilities:
+        if probability[0] > 0.5:
+            prediction.append(classes[0])
+        else:
+            prediction.append(classes[1])
+    return prediction
+
+
+def get_list_proba(probabilities):
+    proba = []
+    for probability in probabilities:
+        proba.append(probability[1])
+    return proba
+
+
+def compute_voting(stats, list_results, labels, folder, name='Voting'):
+    voting_results = []
+    voting = voting_selection(stats)
+    print("Voting=", voting)
+    for classifier in range(len(labels)):
+        vote = 0
+        for j in voting:
+            vote += list_results[j][classifier]
+        if vote > (len(voting) / 2):
+            voting_results.append(non_information)
+        else:
+            voting_results.append(information)
+
+    print(name)
+    voting_report = compute_metrics(labels, voting_results)
+    print(voting_report)
+    cm = confusion_matrix(voting_results, labels, [information, non_information])
+    save_heatmap(cm, name, folder)
+
+    return voting_report, voting_results
 
 
 if __name__ == "__main__":
     start_time = time.time()
     classify_split()
-    # write_results(final_classify())
-    # tf_idf_classify()
-    # print("getting relevant lines")
-    # lines = get_lines(serialized=True)
-    # print("features\n")
-    # feat_classify(lines=lines)
-    # print("both\n")
-    # both_classify(lines=lines)
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    """write_results(final_classify())"""
+    tf_idf_classify()
+    print("getting relevant lines")
+    lines = get_lines(serialized=True)
+    print("features\n")
+    feat_classify(lines=lines)
+    print("both\n")
+    both_classify(lines=lines)
+    print("--- %s seconds ---" % (time.time() - start_time))
