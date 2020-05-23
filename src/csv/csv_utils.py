@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from src.keys import non_information, information, full_train_path, reports_outpath, scores_outpath, \
     csv_ex, java_tags, java_keywords, javadoc, features_outpath, split_test_path, latex_tables_out, split_train_path, \
-    new_train_path, new_test_path
+    new_train_path, new_test_path, def_train_path, def_test_path
 
 
 def write_counter(counter):
@@ -165,14 +165,15 @@ def get_javadoc_comments():
     return javadoc_comments
 
 
-def write_results(results):
-    df = read_csv(split_test_path, sep=",",
+def write_results(results, set_name='test'):
+    path = get_path(set_name)
+    df = read_csv(path, sep=",",
                   usecols=['ID'])
     ids = df.ID.fillna(' ').tolist()
     non_information_col = [0 if x == 0 else 1 for x in results]
     out = DataFrame()
     out['ID'] = ids
-    out['Expected'] = non_information_col
+    out['Predicted'] = ['yes' if x == 1 else 'no' for x in non_information_col]
     out.to_csv('../devset/out.csv', index=False)
 
 
@@ -187,6 +188,10 @@ def get_path(set_name='train'):
         path = new_train_path
     elif set_name == 'new_test':
         path = new_test_path
+    elif set_name == 'def_train':
+        path = def_train_path
+    elif set_name == 'def_test':
+        path = def_test_path
     else:
         raise ValueError
     return path

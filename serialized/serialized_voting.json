@@ -1,0 +1,9 @@
+[["DecisionTreeClassifier", "MLPClassifier", "BernoulliNB", "AdaBoostClassifier", "BaggingClassifier"],
+  ["DecisionTreeClassifier", "MLPClassifier", "BaggingClassifier", "AdaBoostClassifier", "BernoulliNB"],
+  ["ExtraTreesClassifier", "GradientBoostingClassifier", "LogisticRegression", "AdaBoostClassifier", "MLPClassifier"],
+  ["SVC (rbf)", "BaggingClassifier", "LogisticRegression", "ExtraTreesClassifier", "BernoulliNB"],
+  ["SVC (rbf)", "GradientBoostingClassifier", "LogisticRegression", "BaggingClassifier", "RandomForestClassifier"],
+  ["AdaBoostClassifier", "MLPClassifier", "BernoulliNB", "SGDClassifier", "SVC (rbf)"],
+  ["MLPClassifier", "BaggingClassifier", "BernoulliNB", "ExtraTreesClassifier", "RandomForestClassifier"],
+  ["LogisticRegression", "MLPClassifier", "RandomForestClassifier", "GradientBoostingClassifier", "AdaBoostClassifier"],
+  ["SGDClassifier", "LinearSVC", "GradientBoostingClassifier", "AdaBoostClassifier", "BaggingClassifier"]]

@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from src.keys import non_information, information, img_outpath, reports_outpath
-from src.csv_utils import get_comments, get_labels, get_tags
+from src.csv.csv_utils import get_comments, get_labels, get_tags
 import re
-from src.features_utils import jaccard, get_no_sep
+from src.classification.features_utils import jaccard, get_no_sep
 
 
 def save_heatmap(cm, name, folder):

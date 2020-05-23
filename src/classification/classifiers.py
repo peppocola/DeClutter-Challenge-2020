@@ -45,6 +45,7 @@ def get_tf_idf_classifiers():
             Classifier(MultinomialNB()),
             Classifier(LinearSVC_Initializer(), LinearSVC.__name__),
             Classifier(SVC_rbf_Initializer(), SVC.__name__ + " (rbf)"),
+            Classifier(SVC_poly_Initializer(), SVC.__name__ + " (poly degree=2)"),
             Classifier(MLPClassifier()),
             Classifier(RandomForestClassifier()),
             Classifier(AdaBoostClassifier()),
@@ -58,13 +59,31 @@ def get_tf_idf_classifiers():
 
 def get_feat_classifiers():
     return [Classifier(DummyClassifier_Initializer()),
-            Classifier(BernoulliNB()),
+            Classifier(BernoulliNB(alpha=0.0001, binarize=0.0, fit_prior=False)),
             Classifier(LinearSVC_Initializer(), LinearSVC.__name__),
+            Classifier(SVC_rbf_Initializer(), SVC.__name__ + " (rbf)"),
             Classifier(SVC_poly_Initializer(), SVC.__name__ + " (poly degree=2)"),
             Classifier(MLPClassifier()),
             Classifier(RandomForestClassifier()),
             Classifier(AdaBoostClassifier()),
             Classifier(BaggingClassifier()),
+            Classifier(ExtraTreesClassifier()),
+            Classifier(GradientBoostingClassifier()),
+            Classifier(LogisticRegression()),
+            Classifier(DecisionTreeClassifier()),
+            Classifier(SDGClassifier_Initializer())]
+
+
+def get_tuned_classifiers():
+    return [Classifier(DummyClassifier_Initializer()),
+            Classifier(BernoulliNB(alpha=0.0001, binarize=0.0, fit_prior=False)),
+            Classifier(LinearSVC_Initializer(), LinearSVC.__name__),
+            Classifier(SVC_rbf_Initializer(), SVC.__name__ + " (rbf)"),
+            Classifier(SVC_poly_Initializer(), SVC.__name__ + " (poly degree=2)"),
+            Classifier(MLPClassifier()), # activation='logistic', alpha=0.5, hidden_layer_sizes=(50, 50, 50), learning_rate='adaptive', solver='adam'
+            Classifier(RandomForestClassifier()),
+            Classifier(AdaBoostClassifier(n_estimators=1200, learning_rate=0.1, algorithm='SAMME.R')),
+            Classifier(BaggingClassifier(bootstrap=False, bootstrap_features=False, max_features=500, max_samples=0.5, n_estimators=200, warm_start=True)),
             Classifier(ExtraTreesClassifier()),
             Classifier(GradientBoostingClassifier()),
             Classifier(LogisticRegression()),

@@ -1,15 +1,14 @@
 import re
 
 from scipy import sparse
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
 from sklearn.pipeline import Pipeline
 from mlxtend.feature_selection import SequentialFeatureSelector as sfs
 from sklearn.preprocessing import LabelEncoder, normalize, scale
 
-from src.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type, write_csv
-from src.code_parser import get_code_words, word_extractor, tokenizer, get_lines, get_positions_encoded
+from src.csv.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type, write_csv
+from src.comment_analysis.parsing_utils import get_code_words, word_extractor, tokenizer, get_lines, get_positions_encoded
 from src.keys import reports_outpath
 
 import numpy as np

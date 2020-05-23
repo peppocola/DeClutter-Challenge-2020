@@ -2,12 +2,12 @@ import json
 
 from sklearn.preprocessing import LabelEncoder
 
-from src.url_utils import get_text_by_url
-from src.csv_utils import get_link_line_type, get_keywords
-from src.keys import line
+from src.comment_analysis.url_utils import get_text_by_url
+from src.csv.csv_utils import get_link_line_type, get_keywords
+from src.keys import line, serialize_outpath
 from nltk.stem.porter import *
 from spacy.lang.en.stop_words import STOP_WORDS
-from src.java_re import *
+from src.comment_analysis.java_re import *
 
 
 def get_line(code, comment_line, comment_type):
@@ -90,7 +90,7 @@ def get_positions_encoded(lines=None, set='train'):
 
 def get_lines(serialized=True, serialize=False, set='train'):
     if serialized:
-        x = open('../serialized_' + set +'.json', 'r').read()
+        x = open(serialize_outpath + 'serialized_' + set +'.json', 'r').read()
         return json.loads(x)
     comment_type = 0
     text_link = 1
@@ -103,7 +103,7 @@ def get_lines(serialized=True, serialize=False, set='train'):
         focus_line = get_line(code, row[comment_line], row[comment_type])
         lines.append(focus_line)
     if serialize:
-        x = open('../serialized_' + set +'.json', 'w')
+        x = open(serialize_outpath + 'serialized_' + set +'.json', 'w')
         x.write(json.dumps(lines))
     return lines
 

@@ -1,0 +1,12 @@
+{  "MLPClassifier": 6,
+  "AdaBoostClassifier": 6,
+  "BaggingClassifier": 6,
+  "BernoulliNB": 5,
+  "GradientBoostingClassifier": 4,
+  "LogisticRegression": 4,
+  "SVC (rbf)": 3,
+  "RandomForestClassifier": 3,
+  "ExtraTreesClassifier": 3,
+  "DecisionTreeClassifier": 2,
+  "SGDClassifier": 2,
+  "LinearSVC": 1}

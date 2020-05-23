@@ -105,7 +105,9 @@ def compute_metrics(y_true, y_pred):
     scores = {'precision_no': precision_no(y_true, y_pred), 'recall_no': recall_no(y_true, y_pred),
               'f1_no': f1_no(y_true, y_pred), 'precision_yes': precision_yes(y_true, y_pred),
               'recall_yes': recall_yes(y_true, y_pred), 'f1_yes': f1_yes(y_true, y_pred),
-              'accuracy': accuracy_score(y_true, y_pred), 'precision_macro': precision_score(y_true, y_pred, average='macro'),
-              'recall_macro': recall_score(y_true, y_pred, average='macro'), 'f1_macro': f1_score(y_true, y_pred, average='macro'),
+              'accuracy': accuracy_score(y_true, y_pred),
+              'precision_macro': precision_score(y_true, y_pred, average='macro'),
+              'recall_macro': recall_score(y_true, y_pred, average='macro'),
+              'f1_macro': f1_score(y_true, y_pred, average='macro'),
               'matthews_corrcoef': matthews_corrcoef(y_true, y_pred)}
     return scores
