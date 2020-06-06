@@ -29,6 +29,17 @@ def tf_idf_classify(classifiers=None, set='train', folder="tfidf-classifiers", v
     return do_kfold(classifiers, labels, features, folder, voting)
 
 
+def word_count_classifier(classifiers=None, set='train', folder='wc_classifiers', voting=True):
+    if classifiers is None:
+        classifiers = get_tf_idf_classifiers()
+
+    labels = get_labels(set=set)
+
+    features = get_tfidf_features(set=set, normalized=False)
+
+    return do_kfold(classifiers, labels, features, folder, voting)
+
+
 def feat_classify(classifiers=None, set='train', folder="features-classifiers", stemming=True, rem_kws=True, lines=None,
                   voting=True):
     if classifiers is None:
@@ -40,12 +51,12 @@ def feat_classify(classifiers=None, set='train', folder="features-classifiers", 
     return do_kfold(classifiers, labels, features, folder, voting)
 
 
-def both_classify(classifiers=None, set='train', folder="both-classifiers", stemming=True, rem_kws=True, lines=None,
+def both_classify(classifiers=None, set='train', folder="both-classifiers", stemming=True, rem_kws=True, lines=None, tf_idf=True,
                   voting=True):
     if classifiers is None:
         classifiers = get_feat_classifiers()
 
-    features = get_both_features(set=set, stemming=stemming, rem_kws=rem_kws, lines=lines)
+    features = get_both_features(set=set, stemming=stemming, rem_kws=rem_kws, lines=lines, tf_idf=tf_idf)
     labels = get_labels(set=set)
 
     return do_kfold(classifiers, labels, features, folder, voting)
@@ -112,16 +123,25 @@ def classify_split(folder="split_classifier"):
 
 if __name__ == "__main__":
     start_time = time.time()
-    selected_for_voting = classify_split()
-    stats, voting = tf_idf_classify()
-    selected_for_voting.append(voting)
+    #selected_for_voting = classify_split()
+    selected_for_voting = []
+    #stats, voting = word_count_classifier()
+    #selected_for_voting.append(voting)
+
+    """stats, voting = tf_idf_classify()
+    selected_for_voting.append(voting)"""
+
     print("getting relevant lines")
+
     lines = get_lines(serialized=True)
-    print("features\n")
+
+    """print("features\n")
     stats, voting = feat_classify(lines=lines)
     selected_for_voting.append(voting)
-    print("both\n")
-    stats, voting = both_classify(lines=lines)
+    print("both\n")"""
+
+    #stats, voting = both_classify(lines=lines, folder='both-classifiers (tf-idf)', tf_idf=True)
+    stats, voting = both_classify(lines=lines, folder='both-classifiers (word-count)', tf_idf=False)
 
     selected_for_voting.append(voting)
     x = open('../serialized_' + "voting" + '.json', 'w')

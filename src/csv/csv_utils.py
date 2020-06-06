@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from src.keys import non_information, information, full_train_path, reports_outpath, scores_outpath, \
     csv_ex, java_tags, java_keywords, javadoc, features_outpath, split_test_path, latex_tables_out, split_train_path, \
-    new_train_path, new_test_path, def_train_path, def_test_path
+    new_train_path, new_test_path, def_train_path, def_test_path, result_outpath
 
 
 def write_counter(counter):
@@ -174,7 +174,7 @@ def write_results(results, set_name='test'):
     out = DataFrame()
     out['ID'] = ids
     out['Predicted'] = ['yes' if x == 1 else 'no' for x in non_information_col]
-    out.to_csv('../devset/out.csv', index=False)
+    out.to_csv(result_outpath, index=False)
 
 
 def get_path(set_name='train'):

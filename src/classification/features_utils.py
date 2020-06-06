@@ -1,7 +1,7 @@
 import re
 
 from scipy import sparse
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
 from sklearn.pipeline import Pipeline
 from mlxtend.feature_selection import SequentialFeatureSelector as sfs
@@ -51,8 +51,20 @@ def get_tfidf_features(set='train', normalized=True):
     return dt_matrix
 
 
-def get_both_features(set='train', scaled=True, normalized=True, stemming=True, rem_kws=True, lines=None):
-    dt_matrix = get_tfidf_features(set=set, normalized=normalized)
+def get_wc_features(set='train', normalized=True):
+    comments = get_comments(set=set)
+    wc_vector = CountVectorizer(tokenizer=tokenizer, lowercase=False)
+    dt_matrix = wc_vector.fit_transform(comments)
+    if normalized:
+        dt_matrix = normalize(dt_matrix,  norm='l1', axis=0)
+    return dt_matrix
+
+
+def get_both_features(set='train', scaled=True, normalized=True, stemming=True, rem_kws=True, lines=None, tf_idf=True):
+    if tf_idf:
+        dt_matrix = get_tfidf_features(set=set, normalized=normalized)
+    else:
+        dt_matrix = get_wc_features(set=set, normalized=normalized)
     features = get_features(set=set, scaled=scaled, stemming=stemming, rem_kws=rem_kws, lines=lines)
     return sparse.hstack((dt_matrix, features))
 
