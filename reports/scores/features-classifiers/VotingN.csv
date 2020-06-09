@@ -1,0 +1,2 @@
+precision_no,recall_no,f1_no,precision_yes,recall_yes,f1_yes,accuracy,precision_macro,recall_macro,f1_macro,matthews_corrcoef
+0.86,0.91,0.88,0.73,0.64,0.68,0.83,0.8,0.77,0.78,0.57
