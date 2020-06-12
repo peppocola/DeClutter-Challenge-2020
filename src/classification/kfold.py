@@ -23,9 +23,9 @@ def do_kfold(classifiers, labels, features, folder, voting=True):
     for classifier in classifiers:
         clf = classifier.classifier
         result = cross_val_predict(clf, features, labels,
-                                   cv=KFold(n_splits=10, shuffle=True, random_state=seed), method='predict_proba')
+                                   cv=KFold(n_splits=10, shuffle=True, random_state=seed), method='predict_proba', n_jobs=-1)
         scores = cross_validate(estimator=clf, scoring=scorers, X=features, y=labels,
-                                cv=KFold(n_splits=10, shuffle=True, random_state=seed))
+                                cv=KFold(n_splits=10, shuffle=True, random_state=seed), n_jobs=-1)
 
         probas.add_proba(result, classifier.name)
 
@@ -41,7 +41,7 @@ def do_kfold(classifiers, labels, features, folder, voting=True):
         stats[classifier.name] = report
         print(report)
         stats[classifier.name] = report
-
+    voting_set = []
     if voting:
         voting_set = voting_selection(stats)
 
@@ -51,5 +51,5 @@ def do_kfold(classifiers, labels, features, folder, voting=True):
         stats["VotingN"] = voting_reportN
 
     write_stats(stats, folder)
-    return stats, voting
+    return stats, voting_set
 

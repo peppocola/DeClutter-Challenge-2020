@@ -21,13 +21,18 @@ def DummyClassifier_Initializer():
     return DummyClassifier(strategy='most_frequent')
 
 
-def LinearSVC_Initializer():
-    svm = LinearSVC()
+def LinearSVC_Initializer(tuned=False):
+    if not tuned:
+        svm = LinearSVC()
+    else:
+        svm = LinearSVC(dual=True, fit_intercept=False, loss='squared_hinge', max_iter=100, penalty='l2', tol=0.5)
     return CalibratedClassifierCV(svm)
 
 
-def SDGClassifier_Initializer():
-    return SGDClassifier(loss='log')
+def SGDClassifier_Initializer(tuned=False):
+    if not tuned:
+        return SGDClassifier(loss='log')
+    return SGDClassifier(loss='log', alpha=0.0001, epsilon=1e-06, eta0=1e-06, learning_rate='optimal', max_iter=20, penalty='l1', tol=1)
 
 
 def SVC_rbf_Initializer():
@@ -54,7 +59,7 @@ def get_tf_idf_classifiers():
             Classifier(GradientBoostingClassifier()),
             Classifier(LogisticRegression()),
             Classifier(DecisionTreeClassifier()),
-            Classifier(SDGClassifier_Initializer())]
+            Classifier(SGDClassifier_Initializer())]
 
 
 def get_feat_classifiers():
@@ -71,21 +76,21 @@ def get_feat_classifiers():
             Classifier(GradientBoostingClassifier()),
             Classifier(LogisticRegression()),
             Classifier(DecisionTreeClassifier()),
-            Classifier(SDGClassifier_Initializer())]
+            Classifier(SGDClassifier_Initializer())]
 
 
 def get_tuned_classifiers():
     return [Classifier(DummyClassifier_Initializer()),
             Classifier(BernoulliNB(alpha=0.0001, binarize=0.0, fit_prior=False)),
-            Classifier(LinearSVC_Initializer(), LinearSVC.__name__),
+            Classifier(LinearSVC_Initializer(tuned=True), LinearSVC.__name__),
             Classifier(SVC_rbf_Initializer(), SVC.__name__ + " (rbf)"),
             Classifier(SVC_poly_Initializer(), SVC.__name__ + " (poly degree=2)"),
-            Classifier(MLPClassifier()), # activation='logistic', alpha=0.5, hidden_layer_sizes=(50, 50, 50), learning_rate='adaptive', solver='adam'
+            Classifier(MLPClassifier()),  # activation='logistic', alpha=0.5, hidden_layer_sizes=(50, 50, 50), learning_rate='adaptive', solver='adam'
             Classifier(RandomForestClassifier()),
             Classifier(AdaBoostClassifier(n_estimators=1200, learning_rate=0.1, algorithm='SAMME.R')),
             Classifier(BaggingClassifier(bootstrap=False, bootstrap_features=False, max_features=500, max_samples=0.5, n_estimators=200, warm_start=True)),
             Classifier(ExtraTreesClassifier()),
-            Classifier(GradientBoostingClassifier()),
+            Classifier(GradientBoostingClassifier(learning_rate=0.1, max_features=58, min_samples_split=600, min_samples_leaf=20, n_estimators=660, max_depth=5, subsample=0.7, warm_start=True)),
             Classifier(LogisticRegression()),
             Classifier(DecisionTreeClassifier()),
-            Classifier(SDGClassifier_Initializer())]
+            Classifier(SGDClassifier_Initializer(tuned=True))]

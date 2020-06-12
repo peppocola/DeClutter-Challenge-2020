@@ -27,6 +27,7 @@ def train_n_test(classifiers, features_train, labels_train, features_test, label
         print(classifier.name)
         print(score)
 
+    voting_set = []
     if voting:
         voting_set = voting_selection(stats)
         voting_reportW, voting_resultsW = compute_voting(voting_set, probas, labels_test, folder, 'soft')
@@ -35,4 +36,4 @@ def train_n_test(classifiers, features_train, labels_train, features_test, label
         stats["VotingN"] = voting_reportN
     write_stats(stats, folder)
 
-    return stats, voting
+    return stats, voting_set

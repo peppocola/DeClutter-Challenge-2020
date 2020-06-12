@@ -17,6 +17,8 @@ from src.classification.features_utils import get_both_features, get_features, g
 
 import time
 
+from src.keys import serialize_outpath
+
 
 def tf_idf_classify(classifiers=None, set='train', folder="tfidf-classifiers", voting=True):
     if classifiers is None:
@@ -123,28 +125,28 @@ def classify_split(folder="split_classifier"):
 
 if __name__ == "__main__":
     start_time = time.time()
-    #selected_for_voting = classify_split()
-    selected_for_voting = []
-    #stats, voting = word_count_classifier()
-    #selected_for_voting.append(voting)
+    selected_for_voting = classify_split()
+    print(selected_for_voting)
+    stats, voting = word_count_classifier()
+    selected_for_voting.append(voting)
 
-    """stats, voting = tf_idf_classify()
-    selected_for_voting.append(voting)"""
+    stats, voting = tf_idf_classify()
+    selected_for_voting.append(voting)
 
     print("getting relevant lines")
 
     lines = get_lines(serialized=True)
 
-    """print("features\n")
+    print("features\n")
     stats, voting = feat_classify(lines=lines)
     selected_for_voting.append(voting)
-    print("both\n")"""
+    print("both\n")
 
-    #stats, voting = both_classify(lines=lines, folder='both-classifiers (tf-idf)', tf_idf=True)
-    stats, voting = both_classify(lines=lines, folder='both-classifiers (word-count)', tf_idf=False)
-
+    stats, voting = both_classify(lines=lines, folder='both-classifiers (tf-idf)', tf_idf=True)
     selected_for_voting.append(voting)
-    x = open('../serialized_' + "voting" + '.json', 'w')
+    stats, voting = both_classify(lines=lines, folder='both-classifiers (word-count)', tf_idf=False)
+    selected_for_voting.append(voting)
+    x = open(serialize_outpath + 'serialized_' + "voting" + '.json', 'w')
     x.write(json.dumps(selected_for_voting))
 
     print("--- %s seconds ---" % (time.time() - start_time))

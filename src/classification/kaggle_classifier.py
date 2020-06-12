@@ -8,7 +8,7 @@ from sklearn.preprocessing import normalize
 
 from scipy import sparse
 
-from src.classification.classifiers import Classifier, LinearSVC_Initializer, SDGClassifier_Initializer
+from src.classification.classifiers import Classifier, LinearSVC_Initializer, SGDClassifier_Initializer
 from src.classification.features_utils import get_features
 from src.classification.probas import Probas
 from src.classification.voting import compute_voting
@@ -17,10 +17,18 @@ from src.csv.csv_utils import get_comments, get_labels
 
 tfidf_c = [Classifier(MLPClassifier()), Classifier(BaggingClassifier()), Classifier(BernoulliNB()), Classifier(ExtraTreesClassifier()),Classifier(RandomForestClassifier())]
 feat_c = [Classifier(LogisticRegression()), Classifier(MLPClassifier()), Classifier(RandomForestClassifier()), Classifier(GradientBoostingClassifier()), Classifier(AdaBoostClassifier())]
-both_c = [Classifier(SDGClassifier_Initializer()), Classifier(LinearSVC_Initializer()), Classifier(GradientBoostingClassifier()), Classifier(AdaBoostClassifier()), Classifier(BaggingClassifier())]
+#both_c = [Classifier(SDGClassifier_Initializer()), Classifier(LinearSVC_Initializer()), Classifier(GradientBoostingClassifier()), Classifier(AdaBoostClassifier()), Classifier(BaggingClassifier())]
+both_c = [
+    Classifier(GradientBoostingClassifier(learning_rate=0.1, max_features=58, min_samples_split=600, min_samples_leaf=20, n_estimators=660, max_depth=5, subsample=0.7, warm_start=True)),
+    Classifier(AdaBoostClassifier(n_estimators=1200, learning_rate=0.1, algorithm='SAMME.R')),
+    Classifier(BaggingClassifier(bootstrap=False, bootstrap_features=False, max_features=500, max_samples=0.5, n_estimators=200, warm_start=True)),
+    Classifier(SGDClassifier_Initializer(tuned=True)),
+    Classifier(LinearSVC_Initializer(tuned=True))
+
+]
 
 
-def kaggle_classify(stemming=True, rem_kws=True):
+def kaggle_classify(stemming=True, rem_kws=True, voting_type='hard'):
     train_set = 'def_train'
     test_set = 'def_test'
 
@@ -64,5 +72,5 @@ def kaggle_classify(stemming=True, rem_kws=True):
         print(result)
         print(len(result))
 
-    _, voting_results = compute_voting(voting=results.get_names(), probas=results, labels=None, folder=None, voting_type='soft')
+    _, voting_results = compute_voting(voting=results.get_names(), probas=results, labels=None, folder=None, voting_type=voting_type)
     return voting_results, test_set
