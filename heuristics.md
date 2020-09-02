@@ -1,7 +1,7 @@
 # Heuristics
 
 For calculating the Jaccard index and the position, we need to get the line a comment refers to.
-Our assumption is that a comment usually refers to the line after. The sense of comments is to get some basic understanding what the code does, without the need to read the code itself. So it makes much more sense to place the comments before the code it describes. [1]
+Our assumption is that a comment usually refers to the following line. The sense of comments is to get some basic understanding what the code does, without the need to read the code itself. So it makes much more sense to place the comments before the code it describes. [1]
 
 Here are the heuristics used to find the line.
 1. If the line in which the comment is written is not empty (so the line contains more information than just the comment), we select that line.
