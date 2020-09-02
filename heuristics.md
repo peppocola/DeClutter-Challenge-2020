@@ -14,3 +14,6 @@ A line containing just an else, try or finally keyword doesn't contain useful in
 4. If analyzing the lines that follow the comment we find the end of the block ("}"), we start searching a not-empty line preceding the comment, following the previous heuristics but going backwards in the code.
 
 5. If we get to EOF or BOF we select an empty string.
+
+
+[1] https://softwareengineering.stackexchange.com/questions/126601/comment-before-or-after-the-relevant-code
