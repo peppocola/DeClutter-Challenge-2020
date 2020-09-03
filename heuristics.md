@@ -1,6 +1,6 @@
 # Heuristics for identifying the code block a comment refers to 
 
-In the following, we describe the heuristics we implemented to identify the code block a comment refers to. This information is used to calculate the Jaccard index and the type, used by the classifier described in 
+In the following, we describe the heuristics we implemented to identify the code block a comment refers to. This information is used to calculate the Jaccard index and the code block type, used by the classifier described in 
 
 > Giuseppe Colavito, Pierpaolo Basile, Nicole Novielli (2020). "Leveraging Textual and Non-Textual Features forDocumentation Decluttering". In _Proceedings of the Second Software Documentation Generation Challenge (DocGen2)_, co-located with ICSME 2020.
 
