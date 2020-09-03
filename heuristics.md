@@ -1,19 +1,16 @@
-# Heuristics
+# Heuristics for identifying the code block a comment refers to 
 
-For calculating the Jaccard index and the position, we need to get the line a comment refers to.
-Our assumption is that a comment usually refers to the following line. The sense of comments is to get some basic understanding what the code does, without the need to read the code itself. So it makes much more sense to place the comments before the code it describes. [1]
+In the following, we describe the heuristics we implemented to identify the code block a comment refers to. This information is used to calculate the Jaccard index and the position, used by the classifier described in 
 
-Here are the heuristics used to find the line.
-1. If the line in which the comment is written is not empty (so the line contains more information than just the comment), we select that line.
+> Giuseppe Colavito, Pierpaolo Basile, Nicole Novielli (2020). "Leveraging Textual and Non-Textual Features forDocumentation Decluttering". In _Proceedings of the Second Software Documentation Generation Challenge (DocGen2)_, co-located with ICSME 2020.
 
-2. If the line is empty or contains something like else, try or finally, we go on analyzing the following line while they're empty.
-A line containing just an else, try or finally keyword doesn't contain useful information. So we decide to keep searching around.
+Our assumption is that a comment usually refers to the following code line/block. In fact, the purpose of comments is to provide an explanation of what the code does, without the need to read the code itself [1]
 
-3. If the comment is written inside an empty block, we take as referring line the first non-empty line preceding the comment. If the block is empty and there's just a comment inside, probabily the comment refers to an eventual condition preceding the block.
+We define and implement the following heuristics used to find the code line (either the individual statement or the starting line of a code block).
+1. If the line in which the comment is written is not empty, i.e. the line contains the comment and the statement it refers to, we select that line.
 
-4. If analyzing the lines that follow the comment we find the end of the block ("}"), we start searching a not-empty line preceding the comment, following the previous heuristics but going backwards in the code.
+2. If the line contains the comment only or also includes keywords as _else_, _try_ or _finally_, we assume the comment refers to the code block following the comment line.
 
-5. If we get to EOF or BOF we select an empty string.
-
+3. If the comment is written inside an empty block or is immediately foolwed the end of the block  ("}"), we assume the comment refers to the immediately preceding code block. 
 
 [1] https://softwareengineering.stackexchange.com/questions/126601/comment-before-or-after-the-relevant-code
