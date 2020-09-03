@@ -1,6 +1,7 @@
 import re
 
 from scipy import sparse
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.feature_selection import chi2, f_classif, RFECV, mutual_info_classif, SelectKBest
 from sklearn.pipeline import Pipeline
@@ -9,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder, normalize, scale
 
 from src.csv.csv_utils import get_comments, get_tags, get_javadoc_comments, get_labels, get_type, write_csv
 from src.comment_analysis.parsing_utils import get_code_words, word_extractor, tokenizer, get_lines, get_positions_encoded
-from src.keys import reports_outpath
+from src.keys import reports_outpath, feature_selection_path
 
 import numpy as np
 
@@ -42,6 +43,10 @@ def get_features(set='train', stemming=True, rem_kws=True, scaled=True, lines=No
     return features
 
 
+def get_nt_feature_names():
+    return ['jacc_score', 'positions', 'rough_length', 'length', 'types', 'link_tag']
+
+
 def get_tfidf_features(set='train', normalized=True):
     comments = get_comments(set=set)
     tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False, sublinear_tf=True)
@@ -70,7 +75,7 @@ def get_both_features(set='train', scaled=True, normalized=True, stemming=True, 
 
 
 def do_feature_selection(method, classifier, feature_type='tfidf'):
-    y = get_labels()
+    y = get_labels(set='def_train')
 
     clf = classifier()
     pipeline = Pipeline(
@@ -121,23 +126,13 @@ def get_best_features(scoring, features, feature_names, k='all', csv=False):
     return np.array(feature_names)[select.get_support()]
 
 
-def get_nontextual_features():
-    lines = get_lines()
-    positions = get_positions_encoded(lines=lines)
-    jacc_score = np.array(jaccard(lines=lines))
-    length = np.array([x / 100 for x in get_comment_length()])
-    types = np.array(get_type_encoded())
-
-    features = []
-    for i in range(len(length)):
-        features.append([jacc_score[i], length[i], types[i], positions[i]])
-    feature_names = ['jacc_score', 'length', 'types', 'positions']
-    return features, feature_names
+def get_nontextual_features(set='def_train'):
+    return get_features(set=set), get_nt_feature_names()
 
 
 def get_mi_best_features():
-    features = get_nontextual_features()
-    return mutual_info_classif(features, get_labels())
+    features, feature_names = get_nontextual_features(set='def_train')
+    return mutual_info_classif(features, get_labels(set='def_train'))
 
 
 def get_mi_tfidf_best_features(k=20):
@@ -157,7 +152,7 @@ def get_fclassif_tfidf_best_features(k=20):
 
 def get_tfidf_feature_names():
     vectorizer = TfidfVectorizer(tokenizer=tokenizer, lowercase=False)
-    features = vectorizer.fit_transform(get_comments())
+    features = vectorizer.fit_transform(get_comments(set='def_train'))
     feature_names = vectorizer.get_feature_names()
     return features, feature_names
 
@@ -280,12 +275,3 @@ def get_no_sep(set='train'):
 def count_sep(string):
     matches = re.findall(r'\\n|\?|&|\\|;|,|\*|\(|\)|\{|\.|/|_|:|=|<|>|\||!|"|\+|-|\[|\]|\'|\}|\^|#|%', string)
     return len(matches)
-
-
-if __name__ == '__main__':
-    # print(get_mi_tfidf_best_features())
-    # print(get_chi2_tfidf_best_features())
-    # print(get_fclassif_tfidf_best_features())
-    # print(get_best_rfe_features(AdaBoostClassifier, feature_type='nontextual'))
-    # print(get_best_sfs_features(forward=True, classifier=RandomForestClassifier, feature_type='tfidf', k=(1,500)))
-    print([x for x in zip(get_no_sep(), get_comments())])

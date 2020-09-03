@@ -1,0 +1,2 @@
+['jacc_score', 'positions', 'rough_length', 'length', 'types', 'link_tag']
+[0.14755527 0.16518774 0.1059028  0.01269436 0.02966847 0.02821861]

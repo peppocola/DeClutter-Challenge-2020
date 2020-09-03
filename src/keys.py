@@ -20,4 +20,5 @@ javadoc = 'Javadoc'
 line = 'Line'
 block = 'Block'
 latex_tables_out = '../../latex/'
+feature_selection_path = '../../feat_select/'
 
