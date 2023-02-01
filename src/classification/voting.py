@@ -10,16 +10,11 @@ import numpy as np
 
 
 def voting_selection(stats, criteria='f1_yes', n=5):
-    classifiers = []
-    f1_yes = []
     keys = list(stats.keys())
-    for key in keys:
-        f1_yes.append(stats[key][criteria])
+    f1_yes = [stats[key][criteria] for key in keys]
     index = np.argpartition(f1_yes, -n)[-n:]
 
-    for i in index:
-        classifiers.append(keys[i])
-    return classifiers
+    return [keys[i] for i in index]
 
 
 def compute_voting(voting, probas, labels, folder, voting_type='hard'):
@@ -28,24 +23,22 @@ def compute_voting(voting, probas, labels, folder, voting_type='hard'):
 
     print("Voting=", voting)
 
-    if voting_type == 'soft':
-        get_vote = probas.get_proba_name_index
-    elif voting_type == 'hard':
+    if voting_type == 'hard':
         get_vote = probas.get_pred_name_index
+    elif voting_type == 'soft':
+        get_vote = probas.get_proba_name_index
     else:
         raise ValueError
 
     for i in range(probas.get_no_examples()):
-        vote = 0
-        for j in voting:
-            vote += get_vote(j, i)
+        vote = sum(get_vote(j, i) for j in voting)
         if vote > (len(voting) / 2):
             voting_results.append(non_information)
         else:
             voting_results.append(information)
 
     if labels is not None:
-        print(name + '_voting')
+        print(f'{name}_voting')
         voting_report = compute_metrics(labels, voting_results)
         print(voting_report)
         cm = confusion_matrix(voting_results, labels, [information, non_information])

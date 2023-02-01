@@ -5,15 +5,11 @@ def to_raw(url):
     rawgh = 'raw.githubusercontent.com'
     gh_pos = 2
     blob_pos = 5
-    sep = "/"
-
     temp_url = url.split('/')
     del temp_url[blob_pos]
     temp_url[gh_pos] = rawgh
 
-    new_url = ""
-    for i in range(0, len(temp_url) - 1):
-        new_url += temp_url[i] + sep
+    new_url = "".join(f"{temp_url[i]}/" for i in range(len(temp_url) - 1))
     new_url += temp_url[len(temp_url) - 1]
     return new_url
 

@@ -26,10 +26,7 @@ class Probas:
         return self.dict_probas[name]
 
     def get_list_proba(self, name): #get the list of proba given by a classifier (name) for all the examples for the class 1 (non info yes)
-        proba = []
-        for probability in self.dict_probas[name]:
-            proba.append(probability[non_information])
-        return proba
+        return [probability[non_information] for probability in self.dict_probas[name]]
 
     def get_proba_name_index(self, name, index): #get the probability given by a classifier (name) for an example (index) for the class 1 (non info yes)
         return self.dict_probas[name][index][non_information]
