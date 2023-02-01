@@ -2,45 +2,29 @@ from sklearn.metrics import make_scorer, matthews_corrcoef, accuracy_score, f1_s
 
 
 def get_tp(y_true, y_pred):
-    tp = 0
     if len(y_true) == len(y_pred):
-        for couple in zip(y_true, y_pred):
-            if couple[0] == couple[1] == 1:
-                tp += 1
-        return tp
+        return sum(couple[0] == couple[1] == 1 for couple in zip(y_true, y_pred))
     else:
         raise ValueError
 
 
 def get_tn(y_true, y_pred):
-    tn = 0
     if len(y_true) == len(y_pred):
-        for couple in zip(y_true, y_pred):
-            if couple[0] == couple[1] == 0:
-                tn += 1
-        return tn
+        return sum(couple[0] == couple[1] == 0 for couple in zip(y_true, y_pred))
     else:
         raise ValueError
 
 
 def get_fp(y_true, y_pred):
-    fp = 0
     if len(y_true) == len(y_pred):
-        for couple in zip(y_true, y_pred):
-            if couple[0] == 0 and couple[1] == 1:
-                fp += 1
-        return fp
+        return sum(couple[0] == 0 and couple[1] == 1 for couple in zip(y_true, y_pred))
     else:
         raise ValueError
 
 
 def get_fn(y_true, y_pred):
-    fn = 0
     if len(y_true) == len(y_pred):
-        for couple in zip(y_true, y_pred):
-            if couple[0] == 1 and couple[1] == 0:
-                fn += 1
-        return fn
+        return sum(couple[0] == 1 and couple[1] == 0 for couple in zip(y_true, y_pred))
     else:
         raise ValueError
 
@@ -102,12 +86,16 @@ scorers = {'precision_no': make_scorer(score_func=precision_no),
 
 
 def compute_metrics(y_true, y_pred):
-    scores = {'precision_no': precision_no(y_true, y_pred), 'recall_no': recall_no(y_true, y_pred),
-              'f1_no': f1_no(y_true, y_pred), 'precision_yes': precision_yes(y_true, y_pred),
-              'recall_yes': recall_yes(y_true, y_pred), 'f1_yes': f1_yes(y_true, y_pred),
-              'accuracy': accuracy_score(y_true, y_pred),
-              'precision_macro': precision_score(y_true, y_pred, average='macro'),
-              'recall_macro': recall_score(y_true, y_pred, average='macro'),
-              'f1_macro': f1_score(y_true, y_pred, average='macro'),
-              'matthews_corrcoef': matthews_corrcoef(y_true, y_pred)}
-    return scores
+    return {
+        'precision_no': precision_no(y_true, y_pred),
+        'recall_no': recall_no(y_true, y_pred),
+        'f1_no': f1_no(y_true, y_pred),
+        'precision_yes': precision_yes(y_true, y_pred),
+        'recall_yes': recall_yes(y_true, y_pred),
+        'f1_yes': f1_yes(y_true, y_pred),
+        'accuracy': accuracy_score(y_true, y_pred),
+        'precision_macro': precision_score(y_true, y_pred, average='macro'),
+        'recall_macro': recall_score(y_true, y_pred, average='macro'),
+        'f1_macro': f1_score(y_true, y_pred, average='macro'),
+        'matthews_corrcoef': matthews_corrcoef(y_true, y_pred),
+    }

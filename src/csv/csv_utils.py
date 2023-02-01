@@ -93,9 +93,7 @@ def write_csv(col_names, data, filename):
         writer = csv.writer(file)
         writer.writerow(col_names)
         for i in range(len(data[0])):
-            row = []
-            for values in data:
-                row.append(values[i])
+            row = [values[i] for values in data]
             writer.writerow(row)
 
 
@@ -139,12 +137,12 @@ def get_links():
 
 def get_tags():
     with open(java_tags, 'r') as f:
-        return [line for line in f.read().splitlines()]
+        return list(f.read().splitlines())
 
 
 def get_keywords():
     with open(java_keywords, 'r') as f:
-        return [keyword for keyword in f.read().splitlines()]
+        return list(f.read().splitlines())
 
 
 def get_link_line_type(set='train'):
@@ -157,12 +155,7 @@ def get_javadoc_comments():
     comments = get_comments()
     types = get_type()
 
-    javadoc_comments = []
-    for i in range(len(comments)):
-        if types[i] == javadoc:
-            javadoc_comments.append(comments[i])
-
-    return javadoc_comments
+    return [comments[i] for i in range(len(comments)) if types[i] == javadoc]
 
 
 def write_results(results, set_name='test'):
@@ -218,10 +211,7 @@ def fill_test_set_labels():
 def get_link_label_dict():
     link_label = read_csv(full_train_path, sep=",", usecols=['link_to_comment', 'non-information'])
     link_label = link_label.values.tolist()
-    link_label_dict = {}
-    for entry in link_label:
-        link_label_dict[entry[0]] = entry[1]
-    return link_label_dict
+    return {entry[0]: entry[1] for entry in link_label}
 
 
 if __name__ == "__main__":

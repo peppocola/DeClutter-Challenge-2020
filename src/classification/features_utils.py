@@ -20,8 +20,8 @@ def get_features(set='train', stemming=True, rem_kws=True, scaled=True, lines=No
         lines = get_lines(set=set)
     jacc_score = np.array(jaccard(stemming, rem_kws, lines=lines, set=set))
     positions = np.array(get_positions_encoded(lines=lines, set=set))
-    rough_length = np.array([x for x in get_comment_length(rough=True, set=set)])
-    length = np.array([x for x in get_comment_length(rough=False, set=set)])
+    rough_length = np.array(list(get_comment_length(rough=True, set=set)))
+    length = np.array(list(get_comment_length(rough=False, set=set)))
     types = np.array(get_type_encoded(set=set))
     link_tag = np.array(get_links_tag(set=set))
 
@@ -90,16 +90,18 @@ def do_feature_selection(method, classifier, feature_type='tfidf'):
         raise ValueError
 
     if isinstance(method, sfs):
-        if feature_type == 'nontextual':
-            selected = []
-            for f in pipeline.named_steps['feature_selection'].k_feature_names_:
-                selected.append(feature_names[int(f)])
-            return selected
-        else:
-            return pipeline.named_steps['feature_selection'].k_feature_names_
-    else:
-        support = pipeline.named_steps['feature_selection'].support_
-        return np.array(feature_names)[support]
+        return (
+            [
+                feature_names[int(f)]
+                for f in pipeline.named_steps[
+                    'feature_selection'
+                ].k_feature_names_
+            ]
+            if feature_type == 'nontextual'
+            else pipeline.named_steps['feature_selection'].k_feature_names_
+        )
+    support = pipeline.named_steps['feature_selection'].support_
+    return np.array(feature_names)[support]
 
 
 def get_best_sfs_features(classifier, k=1, forward=True, scoring='f1_macro', feature_type='tfidf'):
@@ -122,7 +124,11 @@ def get_best_features(scoring, features, feature_names, k='all', csv=False):
     select = SelectKBest(scoring, k)
     X_new = select.fit_transform(features, get_labels())
     if csv:
-        write_csv(['feature', 'score'], [feature_names, select.scores_], scoring.__name__ + '_features')
+        write_csv(
+            ['feature', 'score'],
+            [feature_names, select.scores_],
+            f'{scoring.__name__}_features',
+        )
     return np.array(feature_names)[select.get_support()]
 
 
@@ -164,7 +170,7 @@ def get_tfidf_vocabulary(max_features=None):
     else:
         tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False, max_features=max_features)
     tfidf_vector.fit_transform(comments)
-    file = open(reports_outpath + "tfidf_features.txt", 'w')
+    file = open(f"{reports_outpath}tfidf_features.txt", 'w')
     for key in tfidf_vector.vocabulary_.keys():
         file.write(key)
         file.write("\n")
@@ -179,7 +185,7 @@ def get_top_tfidf_features(top_n=50):
     features = vectorizer.get_feature_names()
     top_features = [features[i] for i in indices[:top_n]]
 
-    file = open(reports_outpath + "top_" + str(top_n) + "_tfidf_features.txt", 'w')
+    file = open(f"{reports_outpath}top_{str(top_n)}_tfidf_features.txt", 'w')
     for feature in top_features:
         file.write(feature)
         file.write("\n")
@@ -191,26 +197,18 @@ def get_tag_for_comment(set='train'):
 
 
 def get_tag_for_list(comments):
-    tags_list = []
-    for i in range(len(comments)):
-        tags_list.append([])
-
+    tags_list = [[] for _ in range(len(comments))]
     tags = get_tags()
     for tag in tags:
-        i = 0
-        for comment in comments:
+        for i, comment in enumerate(comments):
             if re.search(tag, comment):
                 tags_list[i].append(tag)
-            i += 1
     return tags_list
 
 
 def get_comment_words(stemming=True, rem_keyws=True, set='train'):
     comments = get_comments(set)
-    words = []
-    for comment in comments:
-        words.append(word_extractor(comment, stemming, rem_keyws))
-    return words
+    return [word_extractor(comment, stemming, rem_keyws) for comment in comments]
 
 
 def jaccard(stemming=True, rem_keyws=True, lines=None, set='train'):
@@ -219,10 +217,7 @@ def jaccard(stemming=True, rem_keyws=True, lines=None, set='train'):
     else:
         code = get_code_words(stemming, rem_keyws, lines, set=set)
     comments = get_comment_words(stemming, rem_keyws, set=set)
-    score = []
-    for i in range(len(comments)):
-        score.append(get_jaccard_sim(code[i], comments[i]))
-    return score
+    return [get_jaccard_sim(code[i], comments[i]) for i in range(len(comments))]
 
 
 def get_jaccard_sim(first, second):

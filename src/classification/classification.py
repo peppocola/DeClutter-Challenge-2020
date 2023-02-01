@@ -70,8 +70,6 @@ def classify_split(folder="split_classifier"):
     train_set = 'split_train'
     test_set = 'split_test'
 
-    selected_for_voting = []
-
     # TF-IDF
     comments_train = get_comments(set=train_set)
     tfidf_vector = TfidfVectorizer(tokenizer=tokenizer, lowercase=False, sublinear_tf=True)
@@ -82,19 +80,28 @@ def classify_split(folder="split_classifier"):
     dt_matrix_test = tfidf_vector.transform(comments_test)
     # dt_matrix_test = normalize(dt_matrix_test, norm='l1', axis=0)
 
-    stats, voting = tf_idf_classify(set=train_set, folder=folder + "/tf_idf_classifier/")
+    stats, voting = tf_idf_classify(
+        set=train_set, folder=f"{folder}/tf_idf_classifier/"
+    )
 
-    selected_for_voting.append(voting)
-
-    stats, voting = train_n_test(get_tf_idf_classifiers(), dt_matrix_train, get_labels(set=train_set), dt_matrix_test,
-                                 get_labels(set=test_set), folder=folder + "/tf_idf_classifier_tet/")
+    selected_for_voting = [voting]
+    stats, voting = train_n_test(
+        get_tf_idf_classifiers(),
+        dt_matrix_train,
+        get_labels(set=train_set),
+        dt_matrix_test,
+        get_labels(set=test_set),
+        folder=f"{folder}/tf_idf_classifier_tet/",
+    )
 
     selected_for_voting.append(voting)
 
     # FEATURES
     lines_train = get_lines(serialized=True, set=train_set)
 
-    stats, voting = feat_classify(set=train_set, folder=folder + "/feat_classifier/", lines=lines_train)
+    stats, voting = feat_classify(
+        set=train_set, folder=f"{folder}/feat_classifier/", lines=lines_train
+    )
 
     selected_for_voting.append(voting)
 
@@ -102,21 +109,35 @@ def classify_split(folder="split_classifier"):
     lines_test = get_lines(serialized=True, set=test_set)
     features_test = get_features(set=test_set, scaled=True, lines=lines_test)
 
-    stats, voting = train_n_test(get_feat_classifiers(), features_train, get_labels(set=train_set), features_test,
-                                 get_labels(set=test_set), folder=folder + "/feat_classifier_tet/")
+    stats, voting = train_n_test(
+        get_feat_classifiers(),
+        features_train,
+        get_labels(set=train_set),
+        features_test,
+        get_labels(set=test_set),
+        folder=f"{folder}/feat_classifier_tet/",
+    )
 
     selected_for_voting.append(voting)
 
     # BOTH_CLASSIFIERS
-    stats, voting = both_classify(set=train_set, folder=folder + "/both_classifier/", lines=lines_train)
+    stats, voting = both_classify(
+        set=train_set, folder=f"{folder}/both_classifier/", lines=lines_train
+    )
 
     selected_for_voting.append(voting)
 
     both_train = sparse.hstack((dt_matrix_train, features_train))
     both_test = sparse.hstack((dt_matrix_test, features_test))
 
-    stats, voting = train_n_test(get_feat_classifiers(), both_train, get_labels(set=train_set), both_test,
-                                 get_labels(set=test_set), folder=folder + "/both_classifier_tet/")
+    stats, voting = train_n_test(
+        get_feat_classifiers(),
+        both_train,
+        get_labels(set=train_set),
+        both_test,
+        get_labels(set=test_set),
+        folder=f"{folder}/both_classifier_tet/",
+    )
 
     selected_for_voting.append(voting)
 
@@ -146,7 +167,7 @@ if __name__ == "__main__":
     selected_for_voting.append(voting)
     stats, voting = both_classify(lines=lines, folder='both-classifiers (word-count)', tf_idf=False)
     selected_for_voting.append(voting)
-    x = open(serialize_outpath + 'serialized_' + "voting" + '.json', 'w')
+    x = open(f'{serialize_outpath}serialized_voting.json', 'w')
     x.write(json.dumps(selected_for_voting))
 
-    print("--- %s seconds ---" % (time.time() - start_time))
+    print(f"--- {time.time() - start_time} seconds ---")

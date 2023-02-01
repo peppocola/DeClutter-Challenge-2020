@@ -18,8 +18,8 @@ def ablation(set='def_train', stemming=True, rem_kws=True, scaled=True, normaliz
     #NON-TEXTUAL
     jacc_score = np.array(jaccard(stemming, rem_kws, lines=lines, set=set))
     positions = np.array(get_positions_encoded(lines=lines, set=set))
-    rough_length = np.array([x for x in get_comment_length(rough=True, set=set)])
-    length = np.array([x for x in get_comment_length(rough=False, set=set)])
+    rough_length = np.array(list(get_comment_length(rough=True, set=set)))
+    length = np.array(list(get_comment_length(rough=False, set=set)))
     types = np.array(get_type_encoded(set=set))
     link_tag = np.array(get_links_tag(set=set))
 
@@ -31,7 +31,7 @@ def ablation(set='def_train', stemming=True, rem_kws=True, scaled=True, normaliz
     if normalized:
         dt_matrix = normalize(dt_matrix, norm='l1', axis=0)
 
-    for i in range(0, 7):
+    for i in range(7):
         features = np.array([])
         if i != 0:
             new_feature = rough_length.reshape((rough_length.shape[0], 1))
@@ -50,7 +50,13 @@ def ablation(set='def_train', stemming=True, rem_kws=True, scaled=True, normaliz
         if i != 6:
             features = sparse.hstack((dt_matrix, features))
 
-        do_kfold(classifiers=[Classifier(AdaBoostClassifier())], labels=get_labels(set=set), features=features, folder="ablation"+str(i), voting=False)
+        do_kfold(
+            classifiers=[Classifier(AdaBoostClassifier())],
+            labels=get_labels(set=set),
+            features=features,
+            folder=f"ablation{str(i)}",
+            voting=False,
+        )
 
     return 1
 

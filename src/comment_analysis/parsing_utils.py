@@ -14,11 +14,13 @@ def get_line(code, comment_line, comment_type):
     code = code.splitlines()
     try:
         if comment_type == line:
-            if not re.match(r"^[\s]*//.*", code[
-                comment_line - 1]):  # if the line doesn't start as a comment, the comment refers to this line
-                if not re.match(r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*//.*[\s]*$", code[
-                    comment_line - 1]):  # if the line isnt just brackets and some keywords, the foucs line is the comment_line
-                    return code[comment_line - 1]
+            if not re.match(
+                r"^[\s]*//.*", code[comment_line - 1]
+            ) and not re.match(
+                r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*//.*[\s]*$",
+                code[comment_line - 1],
+            ):
+                return code[comment_line - 1]
             i = 0
             while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"[\s]*[^}{](try|else|finally)[\s]*{?", code[comment_line + i]):  # while the line starts as a comment, ignore it. I do this because they use multiple line comment to simulate a block
                 i += 1
@@ -30,9 +32,6 @@ def get_line(code, comment_line, comment_type):
                         r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(
                         r"^[\s]*\*/.*", code[comment_line + i]):  # while the line is a comment or is blank, ignore it
                     i -= 1
-            return code[comment_line + i]  # comment refers to that
-        # r"^[\s]*}?[\s]*(else|try|finally)?[\s]*{?[\s]*.*$"
-
         else:  # block or javadoc
             # if the line doesn't start as a comment, the comment refers to this line
             if not re.match(r"^[\s]*/\*.*", code[comment_line - 1]):
@@ -53,7 +52,7 @@ def get_line(code, comment_line, comment_type):
                 # while the line is a comment or is blank, ignore it
                 while re.match(r"^[\s]*//.*", code[comment_line + i]) or re.match(r"^[\s]*$", code[comment_line + i]) or re.match(r"^[\s]*/\*.*", code[comment_line + i]) or re.match(r"^\*", code[comment_line + i]) or re.match(r"^[\s]*\*/.*", code[comment_line + i]):
                     i -= 1
-            return code[comment_line + i]
+        return code[comment_line + i]  # comment refers to that
     except IndexError:
         return ""
 
@@ -67,15 +66,12 @@ def get_positions(lines=None, set='train'):
     data = get_link_line_type(set=set)
     if lines is None:
         lines = get_lines(set=set)
-    i = 0
-    for row in data:
+    for i, _ in enumerate(data):
         #print(row[comment_line], row[comment_type], row[text_link] + "#L" + str(row[comment_line]))
         focus_line = lines[i]
         #print(focus_line)
         p = get_position(focus_line)
         positions.append(p)
-        #print(p)
-        i += 1
     return positions
 
 
@@ -90,7 +86,7 @@ def get_positions_encoded(lines=None, set='train'):
 
 def get_lines(serialized=True, serialize=False, set='train'):
     if serialized:
-        x = open(serialize_outpath + 'serialized_' + set +'.json', 'r').read()
+        x = open(f'{serialize_outpath}serialized_{set}.json', 'r').read()
         return json.loads(x)
     comment_type = 0
     text_link = 1
@@ -103,7 +99,7 @@ def get_lines(serialized=True, serialize=False, set='train'):
         focus_line = get_line(code, row[comment_line], row[comment_type])
         lines.append(focus_line)
     if serialize:
-        x = open(serialize_outpath + 'serialized_' + set +'.json', 'w')
+        x = open(f'{serialize_outpath}serialized_{set}.json', 'w')
         x.write(json.dumps(lines))
     return lines
 
@@ -111,10 +107,7 @@ def get_lines(serialized=True, serialize=False, set='train'):
 def get_code_words(stemming=True, rem_keyws=True, lines=None, set='train'):
     if lines is None:
         lines = get_lines(set=set, serialized=False, serialize=True)
-    words = []
-    for line in lines:
-        words.append(word_extractor(line, stemming, rem_keyws))
-    return words
+    return [word_extractor(line, stemming, rem_keyws) for line in lines]
 
 
 def word_extractor(string, stemming=True, rem_keyws=True):
@@ -124,8 +117,7 @@ def word_extractor(string, stemming=True, rem_keyws=True):
     words = []
     for part in splitted:
         camel_case_parts = camel_case_split(part)
-        for camel in camel_case_parts:
-            words.append(camel.lower())
+        words.extend(camel.lower() for camel in camel_case_parts)
     if stemming and rem_keyws:
         return stem(remove_keywords(words))
     elif stemming:
@@ -136,19 +128,12 @@ def word_extractor(string, stemming=True, rem_keyws=True):
 
 def remove_keywords(words):
     keywords = get_keywords()
-    non_keywords = []
-    for word in words:
-        if word not in keywords:
-            non_keywords.append(word)
-    return non_keywords
+    return [word for word in words if word not in keywords]
 
 
 def stem(words):
     stemmer = PorterStemmer()
-    stemmed = []
-    for token in words:
-        stemmed.append(stemmer.stem(token))
-    return stemmed
+    return [stemmer.stem(token) for token in words]
 
 
 def camel_case_split(string):
@@ -214,17 +199,6 @@ def remove_block_comment(string):
                         maybe_block = True
                 else:
                     block = True
-        if char == '"':
-            if in_string is True:
-                if escape is False:
-                    in_string = False
-                else:
-                    escape = False
-            else:
-                in_string = True
-        elif char == '\\':
-            if in_string is True:
-                escape = True
         elif char == '/':
             if not in_string:
                 if maybe_block is True:
@@ -235,6 +209,17 @@ def remove_block_comment(string):
                 else:
                     maybe_block = True
                     init_index = i
+        elif char == '\\':
+            if in_string is True:
+                escape = True
+        elif char == '"':
+            if in_string is True:
+                if escape is False:
+                    in_string = False
+                else:
+                    escape = False
+            else:
+                in_string = True
         i += 1
     if found is True:
         return string[:init_index] + string[end_index + 1:]
@@ -249,19 +234,14 @@ def code_split(string):
 
 def remove_stopwords(tokens):
     stop_words = STOP_WORDS
-    relevant_words = []
-    for token in tokens:
-        if token not in stop_words:
-            relevant_words.append(token)
-    return relevant_words
+    return [token for token in tokens if token not in stop_words]
 
 
 def tokenizer(string, rem_stop=False, stemming=False, rem_kws=False):
     tokens = code_split(string)
     new_tokens = []
     for token in tokens:
-        for t in camel_case_split(token):
-            new_tokens.append(t.lower())
+        new_tokens.extend(t.lower() for t in camel_case_split(token))
     if rem_stop:
         new_tokens = remove_stopwords(new_tokens)
     if rem_kws:

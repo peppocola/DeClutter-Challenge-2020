@@ -47,11 +47,27 @@ def plot_length(rough=True):
     plt.ylabel('number of comments')
     plt.legend(['no', 'yes'])
     if rough:
-        plt.text(1000, 80, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
-        plt.text(1000, 90, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
+        plt.text(
+            1000,
+            80,
+            f'yes avg length= {str(round(sum(sample_yes) / len(sample_yes), 2))}',
+        )
+        plt.text(
+            1000,
+            90,
+            f'no avg length={str(round(sum(sample_no) / len(sample_no), 2))}',
+        )
     else:
-        plt.text(150, 70, 'yes avg length= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
-        plt.text(150, 80, 'no avg length=' + str(round(sum(sample_no) / len(sample_no), 2)))
+        plt.text(
+            150,
+            70,
+            f'yes avg length= {str(round(sum(sample_yes) / len(sample_yes), 2))}',
+        )
+        plt.text(
+            150,
+            80,
+            f'no avg length={str(round(sum(sample_no) / len(sample_no), 2))}',
+        )
     plt.savefig(img_outpath + out)
     plt.clf()
 
@@ -59,8 +75,6 @@ def plot_length(rough=True):
 def plot_no_sep():
     labels = np.array(get_labels())
     no_sep = get_no_sep()
-    out = 'no_sep_distribution.png'
-
     sample_yes = []
     sample_no = []
     for x in range(len(labels)):
@@ -77,9 +91,15 @@ def plot_no_sep():
     plt.xlabel('no_sep')
     plt.ylabel('number of comments')
     plt.legend(['no', 'yes'])
-    plt.text(40, 140, 'yes avg sep= ' + str(round(sum(sample_yes) / len(sample_yes), 2)))
-    plt.text(40, 150, 'no avg sep=' + str(round(sum(sample_no) / len(sample_no), 2)))
-    plt.savefig(img_outpath + out)
+    plt.text(
+        40,
+        140,
+        f'yes avg sep= {str(round(sum(sample_yes) / len(sample_yes), 2))}',
+    )
+    plt.text(
+        40, 150, f'no avg sep={str(round(sum(sample_no) / len(sample_no), 2))}'
+    )
+    plt.savefig(f'{img_outpath}no_sep_distribution.png')
     plt.clf()
 
 
@@ -116,11 +136,23 @@ def has_tags_analysis():
         elif labels[i] == information and tag_comment[i] == no_tags:
             no_tags_negative += 1
         i += 1
-    with open(reports_outpath + "has_tags" + ".txt", 'w') as f:
-        f.write("yes w tags = " + str(tags_positive) + "/" + str(tags_positive + no_tags_positive) + "\n")
-        f.write("yes wout tags = " + str(no_tags_positive) + "/" + str(tags_positive + no_tags_positive) + "\n")
-        f.write("no w tags = " + str(tags_negative) + "/" + str(tags_negative + no_tags_negative) + "\n")
-        f.write("no wout tags = " + str(no_tags_negative) + "/" + str(tags_negative + no_tags_negative) + "\n")
+    with open(f"{reports_outpath}has_tags.txt", 'w') as f:
+        f.write(
+            f"yes w tags = {str(tags_positive)}/{str(tags_positive + no_tags_positive)}"
+            + "\n"
+        )
+        f.write(
+            f"yes wout tags = {str(no_tags_positive)}/{str(tags_positive + no_tags_positive)}"
+            + "\n"
+        )
+        f.write(
+            f"no w tags = {str(tags_negative)}/{str(tags_negative + no_tags_negative)}"
+            + "\n"
+        )
+        f.write(
+            f"no wout tags = {str(no_tags_negative)}/{str(tags_negative + no_tags_negative)}"
+            + "\n"
+        )
     assert tags_positive + tags_negative + no_tags_positive + no_tags_negative == len(labels)
 
 
@@ -132,18 +164,16 @@ def tags_analysis():
     tags_dict = {}
     for tag in tags:
         tags_dict[tag] = [0, 0]
-        i = 0
-        for comment in comments:
+        for i, comment in enumerate(comments):
             if re.search(tag, comment):
                 if labels[i] == non_information:
                     tags_dict[tag][non_information] += 1
                 else:
                     tags_dict[tag][information] += 1
-            i += 1
-    with open(reports_outpath + "tags_analysis" + ".txt", 'w') as f:
-        for key in tags_dict:
-            if tags_dict[key] != [0, 0]:
-                f.write(key + ":" + "\n")
+    with open(f"{reports_outpath}tags_analysis.txt", 'w') as f:
+        for key, value in tags_dict.items():
+            if value != [0, 0]:
+                f.write(f"{key}:" + "\n")
                 f.write("\tno -> " + str(tags_dict[key][information]) + "\n")
                 f.write("\tyes-> " + str(tags_dict[key][non_information]) + "\n")
 
@@ -153,8 +183,8 @@ def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
         jacc_score = np.array(jaccard(stemming, rem_kws))
     labels = np.array(get_labels())
     img_ext = '.png'
-    outpath_yes = img_outpath + 'jacc_distribution_yes'
-    outpath_no = img_outpath + 'jacc_distribution_no'
+    outpath_yes = f'{img_outpath}jacc_distribution_yes'
+    outpath_no = f'{img_outpath}jacc_distribution_no'
     if stemming:
         outpath_yes += '_stem_'
         outpath_no += '_stem'
@@ -179,7 +209,11 @@ def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
     plt.ylim(0, 200)
     plt.xlim(0, 1)
     plt.legend(['yes'])
-    plt.text(0.7, 150, 'yes avg jacc=' + str(round(sum(sample_yes) / len(sample_yes), 3)))
+    plt.text(
+        0.7,
+        150,
+        f'yes avg jacc={str(round(sum(sample_yes) / len(sample_yes), 3))}',
+    )
     plt.savefig(outpath_yes)
     plt.clf()
 
@@ -190,7 +224,11 @@ def plot_jaccard(stemming=True, rem_kws=True, jacc_score=None):
     plt.ylim(0, 200)
     plt.xlim(0, 1)
     plt.legend(['no'])
-    plt.text(0.7, 150, 'no avg jacc= ' + str(round(sum(sample_no) / len(sample_no), 3)))
+    plt.text(
+        0.7,
+        150,
+        f'no avg jacc= {str(round(sum(sample_no) / len(sample_no), 3))}',
+    )
     plt.savefig(outpath_no)
     plt.clf()
 

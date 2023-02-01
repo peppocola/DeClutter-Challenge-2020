@@ -36,7 +36,7 @@ def do_kfold(classifiers, labels, features, folder, voting=True):
         # convert cross_validate report to a usable dict
         report = {}
         for name in scorers.keys():
-            key = 'test_' + name
+            key = f'test_{name}'
             report[name] = np.mean(scores[key])
         stats[classifier.name] = report
         print(report)

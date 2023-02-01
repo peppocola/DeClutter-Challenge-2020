@@ -91,6 +91,4 @@ def get_position(focus_line):
         return package_import_.get_name()
     if loop_cond_.match_(focus_line):
         return loop_cond_.get_name()
-    if requires_.match_(focus_line):
-        return requires_.get_name()
-    return 'error'
+    return requires_.get_name() if requires_.match_(focus_line) else 'error'
